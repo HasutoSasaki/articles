@@ -4,26 +4,15 @@
 
 前回は LanceDB を使ってテキストのベクトル検索の基礎を触りました。テキストを数値に変換して検索する仕組みがわかったところで、画像の方も同じように仕組みが気になったので、今回は LanceDB と OpenCLIP を使ってテキストから画像を検索する仕組みを試してみます。
 
-本記事では、テキストで画像を検索する・画像で画像を検索するという2パターンを Python で動かした結果をまとめます。
-
 ## CLIP と OpenCLIP とは
 
-**CLIP**（Contrastive Language-Image Pre-Training）は OpenAI が開発したモデルで、**テキストエンコーダー**と**画像エンコーダー**の2つを持ちます。両者が同じベクトル空間に出力するよう学習されているため、テキストと画像を直接比較できます。
+CLIP（Contrastive Language-Image Pre-Training）は OpenAI が開発したモデルで、テキストエンコーダーと画像エンコーダーの2つを持ちます。両者が同じベクトル空間に出力するよう学習されているため、テキストと画像を直接比較できます。
 
-ただし、テキストエンコーダーと画像エンコーダーは用途が分かれています。
-
-- **保存時**：画像を**画像エンコーダー**でベクトル化 → LanceDB に保存
-- **検索時**：クエリのテキストを**テキストエンコーダー**でベクトル化 → 保存済みの画像ベクトルと距離を比較
-
-同じ空間に出力されるため、両者を直接比較できます。スキーマの `label` はどちらのエンコーダーも通らず、ただのメタデータです。
-
-これにより、テキストをクエリにして画像を検索したり、画像をクエリにして似た画像を検索したりできます。
-
-**OpenCLIP** はその OSS 再実装版で、LAION という大規模データセット（OpenAI の学習データより規模が大きい）で学習されており、画像検索の精度が元の CLIP より高いとされています。LanceDB は OpenCLIP との統合を公式にサポートしており、`get_registry().get("open-clip")` 一行で呼び出せます。
+OpenCLIP はその OSS 再実装版で、LAION という大規模データセット（OpenAI の学習データより規模が大きい）で学習されており、画像検索の精度が元の CLIP より高いとされています。LanceDB は OpenCLIP との統合を公式にサポートしており、`get_registry().get("open-clip")` 一行で呼び出せます。
 
 ## LanceDB とマルチモーダルの関係
 
-前回の補足で触れましたが、改めて整理します。
+テキストエンコーダーと画像エンコーダーは用途が分かれています。
 
 ```mermaid
 flowchart LR
@@ -33,19 +22,37 @@ flowchart LR
   end
 
   subgraph 検索時
-    Q["クエリテキスト\n「dog」"] -->|テキストエンコーダー| QV[クエリベクトル]
+    Q["クエリテキスト dog"] -->|テキストエンコーダー| QV[クエリベクトル]
     QV -->|距離比較| DB
     DB --> R[検索結果]
   end
 ```
 
-LanceDB 自体はベクトルの保存と検索を担うだけです。保存時は画像エンコーダー、検索時はテキストエンコーダーと使い分けますが、両者が同じ空間に出力するため比較が成立します。
+LanceDB 自体はベクトルの保存と検索を担うだけです。保存時は画像エンコーダー、検索時はテキストエンコーダーと使い分けますが、両者が同じ空間に出力するため比較が成立します。スキーマの `label` はどちらのエンコーダーも通らず、ただのメタデータです。
 
 ## セットアップ
 
 ```bash
 pip install lancedb open-clip-torch Pillow pandas requests
 ```
+
+:::details セットアップでインストールしているパッケージ
+- `open-clip-torch`  
+  OpenCLIP の実装です。画像とテキストを同じベクトル空間に埋め込むモデルを提供します。  
+  このプロジェクトでは LanceDB から `open-clip` を呼び出しており、画像保存時には画像をベクトル化し、検索時にはテキストクエリや画像クエリを同じ空間のベクトルに変換するために使われます。
+
+- `Pillow`  
+  Python で画像を扱うための標準的なライブラリです。  
+  このプロジェクトでは `from PIL import Image` として読み込み、`Image.open(...)` で画像ファイルを開いて、画像そのものを検索クエリとして `table.search(...)` に渡すために使っています。
+
+- `pandas`  
+  表形式データを扱うためのライブラリです。  
+  このプロジェクトでは、画像のラベルとファイルパスを `DataFrame` にまとめて `table.add(...)` に渡すために使っています。
+
+- `requests`  
+  Python で HTTP リクエストを送るためのライブラリです。  
+  今回の掲載コードでは直接は使っていませんが、画像を URL から取得する、外部 API からデータを取る、といった前処理を追加する場合によく使われます。
+:::
 
 ## 実際に動かしてみた
 
@@ -103,29 +110,38 @@ table.add(pd.DataFrame({"label": labels, "image_uri": uris}))
 
 代表的なモデルとして以下の2つがあります。
 
-- **LLaVA**（Large Language-and-Vision Assistant）：視覚エンコーダと LLM を組み合わせたマルチモーダルモデル。画像の説明・Visual QA・OCR などに対応。Ollama で `ollama pull llava` と叩くだけでローカル実行できます
-- **BLIP-2**（Salesforce）：凍結した画像エンコーダと LLM を Q-Former と呼ぶ軽量ブリッジで繋いだモデル。画像キャプション生成と Visual QA が主な用途で、HuggingFace から利用できます
+- LLaVA（Large Language-and-Vision Assistant）：視覚エンコーダと LLM を組み合わせたマルチモーダルモデル。画像の説明・Visual QA・OCR などに対応。Ollama で `ollama pull llava` と叩くだけでローカル実行できます
+- BLIP-2（Bootstrapping Language-Image Pre-training v2）：凍結した画像エンコーダと LLM を Q-Former と呼ぶ軽量ブリッジで繋いだモデル。画像キャプション生成と Visual QA が主な用途で、HuggingFace から利用できます
 
 ### テキストで画像を検索する
 
-まず直接的なクエリを試します。
+ここでは、テキストをクエリとして `table.search(...)` に渡すと、OpenCLIP のテキストエンコーダーでベクトル化され、保存済みの画像ベクトルと比較されることを確認します。
+
+まずは `dog` `cat` `horse` のような直接的な単語を入力し、検索結果の 1 位にどの画像ラベルが返るかを見ます。
 
 ```python
 for query in ["dog", "cat", "horse"]:
     results = table.search(query).limit(6).to_list()
     top = results[0]
-    print(f"クエリ: {query!r:10} → {top['label']} (_distance: {top['_distance']:.4f})")
+    print(
+        f"入力クエリ: {query!r:10} → 1位の画像ラベル: {top['label']} "
+        f"(距離: {top['_distance']:.4f})"
+    )
 ```
 
-実行結果：
+`table.search(query)` の `query` には文字列をそのまま渡せます。内部ではこの文字列がテキストベクトルに変換され、DB に保存済みの画像ベクトルとの距離が近い順に並びます。ここでは `results[0]` だけを取り出して、最も近い画像が何だったかを表示しています。
+
+実行結果です。左が入力したテキスト、右が検索結果の 1 位だった画像ラベル、括弧内がその距離です。
 
 ```
-クエリ: 'dog'      → dog (_distance: 1.4740)
-クエリ: 'cat'      → cat (_distance: 1.4347)
-クエリ: 'horse'    → horse (_distance: 1.4731)
+入力クエリ: 'dog'      → 1位の画像ラベル: dog (距離: 1.4740)
+入力クエリ: 'cat'      → 1位の画像ラベル: cat (距離: 1.4347)
+入力クエリ: 'horse'    → 1位の画像ラベル: horse (距離: 1.4731)
 ```
 
-続いて、間接的・比喩的なクエリを試します。意味を理解しているモデルならば「dog」と直接書かなくても犬の画像が返るはずです。
+いずれも、入力した単語と同じ種類の画像が 1 位になりました。まずは、単純な単語クエリならテキストから対応する画像を引けることが確認できました。
+
+続いて、間接的・比喩的なクエリを試します。今度は「どの画像が返ったか」だけでなく、こちらが期待していたラベルと一致したかも一緒に見ます。
 
 ```python
 queries = [
@@ -140,18 +156,21 @@ queries = [
 for query, expected in queries:
     result = table.search(query).limit(1).to_list()[0]
     mark = "✓" if result["label"] == expected else "✗"
-    print(f"{mark} {query!r:30} → {result['label']} ({result['_distance']:.4f})  [期待: {expected}]")
+    print(
+        f"{mark} 入力: {query!r:30} → 1位: {result['label']} "
+        f"(距離: {result['_distance']:.4f})  [期待: {expected}]"
+    )
 ```
 
-実行結果：
+実行結果です。入力した表現に対して、1 位に返った画像ラベルが期待どおりかを見ています。
 
 ```
-✓ "man's best friend"            → dog (1.5389)  [期待: dog]
-✓ 'loyal companion'              → dog (1.5486)  [期待: dog]
-✓ 'barking animal'               → dog (1.6157)  [期待: dog]
-✓ 'feline creature'              → cat (1.4679)  [期待: cat]
-✗ 'farm animal with mane'        → cat (1.6486)  [期待: horse]
-✓ 'purring pet'                  → cat (1.4665)  [期待: cat]
+✓ 入力: "man's best friend"            → 1位: dog (距離: 1.5389)  [期待: dog]
+✓ 入力: 'loyal companion'              → 1位: dog (距離: 1.5486)  [期待: dog]
+✓ 入力: 'barking animal'               → 1位: dog (距離: 1.6157)  [期待: dog]
+✓ 入力: 'feline creature'              → 1位: cat (距離: 1.4679)  [期待: cat]
+✗ 入力: 'farm animal with mane'        → 1位: cat (距離: 1.6486)  [期待: horse]
+✓ 入力: 'purring pet'                  → 1位: cat (距離: 1.4665)  [期待: cat]
 ```
 
 5/6 が正解でした。`"farm animal with mane"` だけ外れています。これはモデルの限界か表現の問題か、後述のモデルサイズ比較で確認します。
@@ -224,7 +243,7 @@ for r in results:
 
 ### モデルサイズで精度はどう変わるか
 
-デフォルトの `ViT-B-32`（軽量・512次元）と `ViT-L-14`（高精度・768次元）で間接クエリの正解率を比べます。
+デフォルトの `ViT-B-32`（512次元）と `ViT-L-14`（768次元）で間接クエリの正解率を比べます。
 
 ```python
 for model_name, pretrained in [
@@ -288,9 +307,9 @@ label: horse, vector: [-0.0172, 0.2046, -0.1036, ...] (512次元)
 
 ## 日本語クエリは使えるのか
 
-デフォルトの `ViT-B-32` は英語テキストで学習されており、日本語クエリはほぼ機能しません。`"犬"` で検索してもランダムに近い結果が返ってきます。
+デフォルトの `ViT-B-32` は英語 subset で学習されたモデルで、モデルカードでも英語以外での利用は想定外とされています。そのため、日本語クエリでそのまま高い精度を期待するのは難しそうです。
 
-ただし OpenCLIP には多言語対応モデルも用意されています。`XLM-Roberta` をテキストエンコーダーとして使ったモデル（`xlm-roberta-base-ViT-B-32`）は LAION-5B の多言語データで学習されており、日本語 ImageNet での精度が英語版の約1%から37%まで改善されています。
+ただし OpenCLIP には多言語対応モデルも用意されています。`XLM-Roberta` をテキストエンコーダーとして使ったモデル（`xlm-roberta-base-ViT-B-32`）のモデルカードには、preliminary multilingual evaluation として Japanese ImageNet-1k で 37%（英語版 B/32 は 1%）という数値が載っています。
 
 ```python
 # 多言語モデルに切り替える場合
@@ -306,39 +325,48 @@ func = get_registry().get("open-clip").create(
 
 CLIP は大量の「画像とキャプション（テキスト）のペア」を使って学習しています。学習時のタスクは「この画像に対応するキャプションはどれか」という照合で、テキストエンコーダーと画像エンコーダーの2つが同時に学習されます。
 
+流れを単純化すると、次のような学習を大量のペアで何度も繰り返しています。
+
 ```mermaid
 flowchart LR
-  subgraph train["学習データ（画像とテキストのペア）"]
-    I1["犬が走っている画像"] -->|対応| T1["a dog running in the park"]
-    I2["猫が眠っている画像"] -->|対応| T2["a sleeping cat on the sofa"]
+  subgraph enc["1. 画像とテキストを別々にベクトル化"]
+    I[犬の画像] --> IE[画像エンコーダー]
+    T1["a dog"] --> TE[テキストエンコーダー]
+    T2["a cat"] --> TE
+    IE --> IV[犬の画像ベクトル]
+    TE --> DV["'a dog' のテキストベクトル"]
+    TE --> CV["'a cat' のテキストベクトル"]
   end
 
-  subgraph space["学習後のベクトル空間"]
-    V1["犬の画像ベクトル"] -. 近い .- V2["dog のテキストベクトル"]
-    V3["猫の画像ベクトル"] -. 近い .- V4["cat のテキストベクトル"]
+  subgraph cmp["2. 対応関係を比較"]
+    IV --> P[犬の画像 × 'a dog']
+    DV --> P
+    IV --> N[犬の画像 × 'a cat']
+    CV --> N
   end
+
+  subgraph learn["3. 学習で距離を調整"]
+    P --> C1[正しい組み合わせなので近づける]
+    N --> C2[無関係な組み合わせなので遠ざける]
+  end
+
+  C1 --> S[同じ意味のテキストと画像が近い空間]
+  C2 --> S
 ```
 
-この学習を大量に繰り返すことで、意味的に対応するテキストと画像が同じベクトル空間の近い位置に収束していきます。「man's best friend」と犬の画像が近い位置に来るのも、このような対応関係が統計的に学習された結果です。
+ポイントは、単に「犬の画像に dog というラベルを紐づける」だけではなく、犬の画像は `a dog` に近く、`a cat` からは遠いという相対関係まで一緒に学習していることです。
 
-## `"farm animal with mane"` が ViT-B-32 で外れた理由
+この処理を大量データで繰り返すことで、「dog」と犬の画像、「cat」と猫の画像のような対応だけでなく、似た意味の表現どうしも近くなるようにベクトル空間が整っていきます。
 
-`"farm animal with mane"`（たてがみのある家畜）は horse を期待しましたが、ViT-B-32 では cat が返ってきました。
-
-これはモデルの表現力の問題と考えられます。ViT-B-32 は比較的小さいモデルのため、「farm animal」「mane」という複合的な手がかりを組み合わせて horse に辿り着くほどの解像度がなかった可能性があります。ViT-L-14 では正解したことから、モデルが大きいほど細かい意味の組み合わせを扱えるようになるのがわかります。
-
-また、学習データに「farm animal with mane」という表現と馬の画像を結びつけるキャプションが少なかった場合も、ベクトルが horse から離れた位置に配置されます。CLIP の弱点として「コンポジション（複数概念の組み合わせ）への対応」が挙げられており、今回の結果はその一例として見ることができます。
+「man's best friend」と犬の画像が近い位置に来るのも、このような対応関係を大量データから統計的に学習した結果です。
 
 ## まとめ
 
-- OpenCLIP はテキストと画像を同じベクトル空間に変換するモデル。これにより、テキストで画像を検索したり、画像で画像を検索したりできる
-- LanceDB 側の保存・検索ロジックは前回と変わらない。変わるのは埋め込みモデルが「テキストだけでなく画像も扱える」点だけ
-- `"man's best friend"` のように「dog」と直接書かなくても犬の画像が返るのは、CLIP がテキストの意味を統計的に学習しているため
-- モデルが大きいほど細かいニュアンスを扱える。ViT-B-32（5/6正解）より ViT-L-14（6/6正解）の方が複合的な表現に強い
-- デフォルトは英語のみ対応。日本語クエリを使う場合は `xlm-roberta-base-ViT-B-32` など多言語モデルへの切り替えが必要
-- 動画・音声への応用は Meta の ImageBind で同じ仕組みが6モダリティに拡張されている
+今回試してみて一番面白かったのは、LanceDB 側の保存・検索の流れ自体は前回のテキスト検索とほとんど変わらないのに、埋め込みモデルを OpenCLIP に替えるだけで「テキストで画像を探す」「画像で画像を探す」という振る舞いが自然に成立したことです。ベクトル DB の役割と、埋め込みモデルの役割がきれいに分かれているのを実感できました。
 
-次回は ImageBind を使って動画や音声も含めたマルチモーダル検索を試してみたいと思います。
+また、`dog` のような直接的な単語だけでなく、`man's best friend` のような表現でも犬の画像が返ってきたのを見て、「テキストと画像が同じ空間に入る」とはこういうことかと実感できました。一方で、モデルサイズや学習データの違いで結果が変わることも見えたので、マルチモーダル検索は DB だけで完結する話ではなく、どの埋め込みモデルを選ぶかも重要だと感じました。
+
+次回は ImageBind を使って、画像だけでなく動画や音声まで同じ発想で扱えるのかを試してみたいと思います。
 
 私と同じように「マルチモーダル検索の仕組みが気になっている」という方の参考になれば嬉しいです。
 
@@ -346,6 +374,8 @@ flowchart LR
 
 - [OpenCLIP - LanceDB 公式ドキュメント](https://docs.lancedb.com/integrations/embedding/openclip)
 - [GitHub - mlfoundations/open_clip](https://github.com/mlfoundations/open_clip)
+- [Hugging Face - CLIP ViT-B/32 xlm roberta base - LAION-5B](https://huggingface.co/laion/CLIP-ViT-B-32-xlm-roberta-base-laion5B-s13B-b90k)
+- [Hugging Face - CLIP ViT-B/32 - LAION-2B](https://huggingface.co/laion/CLIP-ViT-B-32-laion2B-s34B-b79K)
 - [Learning Transferable Visual Models From Natural Language Supervision（CLIP 論文）](https://arxiv.org/abs/2103.00020)
 - [LLaVA 公式サイト](https://llava-vl.github.io/)
 - [BLIP-2 - Salesforce / HuggingFace](https://huggingface.co/Salesforce/blip2-opt-2.7b)
