@@ -2,3 +2,4 @@
 .playwright-mcp/
 devio/.claude/
 devio/articles/.article-cache.json
+node_modules/

@@ -1,0 +1,10 @@
+{
+  "name": "articles",
+  "version": "1.0.0",
+  "description": "Zenn / DevelopersIO 向け技術記事の管理リポジトリ",
+  "private": true,
+  "license": "MIT",
+  "dependencies": {
+    "zenn-cli": "^0.2.3"
+  }
+}
