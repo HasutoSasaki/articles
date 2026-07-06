@@ -1,125 +1,155 @@
 ---
-title: "MacのHermes Agentをセットアップして検証してみた"
+title: "MacでHermes Agentをセットアップし、Discordで動くまで試してみた"
 emoji: "🤖"
 type: "tech"
-topics: ["CLI", "Python", "macOS", "Hermes Agent"]
+topics: ["AI", "CLI", "macOS", "Discord", "AWS"]
 published: false
 ---
 
-## はじめに
+こんにちは 人材育成室 育成メンバーチームで 研修中の はすと です。
 
-人材育成室 育成メンバーチームで 研修中の はす です。
-
-私は普段よく、コマンドラインツールを使って環境構築をすることが多いのですが、「具体的にmacOS上でどう動いているの？」と聞かれると「bashが呼ばれて〜」のような曖昧な答えしか言えずモヤモヤしました。そのため今回は、Hermes AgentというAIエージェントCLIツールを実際にMacでセットアップしコマンドを実行するまでを試してみます。
+新しい Mac mini の環境を dotfiles で構築する中で、常駐型の AI エージェントである Hermes Agent をセットアップすることになりました。インストール自体はコマンド数個で終わるのですが、実際に Discord ボットとして 24 時間安定稼働させるところまで持っていくと、LLM プロバイダの認証やプラットフォーム連携のあちこちでつまずきました。本記事では、そのセットアップから運用初期にハマったことまでをまとめます。
 
 ## 環境
 
-検証に使用したmacOSの環境は以下の通りです：
+- Mac mini（M4 Pro・48GB Unified Memory）
+- macOS（version: 26.5.1）
 
-- Mac mini(M4 Pro・48GB Unified Memory)
-- macOS(version: 26.5.1)
+## Hermes Agent とは
 
-## Hermes Agentとは
+[Hermes Agent](https://github.com/NousResearch/hermes-agent) は Nous Research が開発している OSS の AI エージェントです。CLI から対話するだけでなく、gateway と呼ぶ仕組みで Discord などのプラットフォームに常駐させ、ボットとして応答させられるのが特徴です。
 
-Hermes AgentはPython製のCLIツールで、Web検索・ブラウザ操作・ファイル操作などを統合したものです。主に以下の特徴があります：
+## インストール：curl | bash を鵜呑みにしない
 
-| カテゴリ | 詳細 |
-|---------|------|
-| インストール方法 | pip3, Homebrew(python3)|
-| 初期検証コマンド | `hermes-shell`, `version`, `memory`, `tools`等 |
-| Python SDK | hermes-agent-cli, mcp-server系列 |
+Hermes のセットアップスクリプトは `curl | bash` 形式でリモートから直接実行する構成で配布されています。中身を確認せずにパイプするのは避けたいので、まずスクリプトを取得して内容を確認しました。
 
-## セットアップ手順
+3000行を超える正規のインストーラで、`uv` / Python / Node.js のセットアップ、リポジトリの clone、依存パッケージの導入までを行うものでした。素性不明のスクリプトではなく、Nous Research の公式リポジトリで配布されている本物と確認できたところで実行に進みます。
 
-### 1. インストール
+対話ウィザード（APIキー入力や gateway 常駐の設定）はそのまま自動実行しようとすると途中で止まってしまうため、インストーラに用意されている `--skip-setup --non-interactive` オプションでインストール本体だけを非対話モードで済ませ、セキュリティ設定と APIキーの投入は後の手順に分けました。
 
-まずはpipでインストール：
+インストール中に `uv` / Python 3.11 / Node.js / ripgrep / ffmpeg の導入、リポジトリの clone、Python 仮想環境の構築、スキル一式の同期が自動で進みます。Chromium のダウンロードも含まれるため、完了までは数分かかりました。
+
+インストール完了後、以下のセキュリティ関連の設定を適用しました。
+
+```yaml
+approvals:
+  mode: smart          # 低リスクな操作は自動承認、高リスクな操作は確認を挟む
+  cron_mode: deny       # cron実行は都度承認する
+security:
+  redact_secrets: true   # ログ出力時にAPIキーなどをマスクする
+  tirith_enabled: true    # 既知の悪性URLへのアクセスを遮断する
+sessions:
+  auto_prune: true
+  retention_days: 60
+```
+
+`hermes doctor` で Python 環境・SSL・必須パッケージ・セキュリティ設定を一括で確認できます。ここまでで環境自体は問題なく整いました。
+
+## LLMプロバイダ設定でハマった話
+
+Hermes は複数の LLM プロバイダに対応しています。私は AWS Bedrock 経由で Claude を使いたかったのですが、ここからが本番でした。
+
+### Bedrock の認証方式を選ぶ
+
+Bedrock には大きく2通りの認証方式があります。
+
+- Bedrock APIキー（単一の長いトークン）
+- IAMアクセスキー（アクセスキーID + シークレットアクセスキーの2点セット）
+
+今回は単一トークン形式を選び、`.env` に専用の環境変数を追加しました。値そのものをチャットに貼るのはリスクがあるため、変数の枠だけ用意してもらい、実際の値はエディタで直接書き込む形にしています。
 
 ```bash
-pip3 install hermes-sdk
-pip3 install --upgrade hermes-shell
+# echo "KEY=xxx" >> .env のようにシェル履歴へ残す方法は避け、
+# エディタで直接開いて貼り付ける
+vim ~/.hermes/.env
 ```
 
-ただし以下のエラーが出た場合、Homebrewが有効化する必要があります：
+ここで一つ落とし穴がありました。ベアラートークン形式の認証には `botocore` の拡張パッケージ（`botocore[crt]`、いわゆる aws-crt）が別途必要で、入れていないと疎通確認の時点でエラーになります。追加インストールしてから再検証しました。
+
+### 東京リージョンで使えるモデルを探す
+
+APIキーの疎通が取れたところで、東京リージョン（ap-northeast-1）で使えるモデルを調べました。
+
+`apac.` プレフィックスのついたクロスリージョン推論プロファイルだけを見て回ったときは、「東京にはまだ最新の Claude モデルが来ていない」という結論になるはずだと考えると思います。実際には `apac.` ではなく `global.` / `jp.` プレフィックスのプロファイルに最新モデルが存在していました。
+
+```
+jp.anthropic.claude-sonnet-4-6       # 日本国内クロスリージョン・低レイテンシ
+global.anthropic.claude-sonnet-4-6   # 全世界ルーティング
+```
+
+`apac.` だけで絞り込んだのが調査漏れの原因でした。実推論まで通した上で `jp.` プロファイルを既定モデルとして設定し、ようやく Bedrock 経由での応答が確認できました。
+
+## Discordで反応がない問題
+
+Hermes は gateway という仕組みで Discord に常駐させられます。`launchd` で gateway を常駐化し、Discord ボットとしての接続自体は成功したのですが、メンションしても一切反応が返ってきませんでした。
+
+ログを確認しても、メッセージ受信イベント自体が1件も記録されていません。原因を切り分けると、設定漏れが2つ重なっていました。
+
+**1. 許可ユーザーリストが未設定**
+
+Hermes はデフォルトで、明示的に許可したユーザー以外のメッセージをすべて拒否する仕様です。許可リストが空だと、認可チェックの段階で弾かれてログにも残らず、完全な無反応になります。
+
+**2. Discord側の Privileged Gateway Intents が無効**
+
+ボットがオンラインでも一切反応しない場合、Discord Developer Portal 側の `Message Content Intent` が無効になっているケースがほとんどでした。`Server Members Intent` と合わせて2つとも有効化が必要です。
+
+許可ユーザーの追加と Intent の有効化を行ったところ、起動ログから「全ユーザー拒否」の警告が消え、実際にメンションへ応答するようになりました。
+
+## 常時稼働のための電源設定
+
+Mac mini は常時 AC 電源なので、ディスプレイは消えてもシステム自体はスリープさせたくありません。現状の電源設定を確認すると、システムスリープが1分でかかる設定になっていました。これでは gateway ごと停止してしまいます。
 
 ```bash
-Error: bash does not exist in /usr/local/bin/bash — command-line environment is invalid
+sudo pmset -c sleep 0   # AC電源時のシステムスリープを無効化
 ```
 
-### 2. CLIコマンドを試す
+`displaysleep`（ディスプレイのスリープ）はそのままにして、システムスリープだけを無効化しています。これは Mac mini を常時稼働サーバーとして使う際の定番構成です。
 
-環境が準備できたら、まず基本的な`hello`コマンドから：
+## 運用を始めてから起きたこと
+
+セットアップ自体は完了しましたが、実際に動かし始めてからも3つの問題に遭遇しました。
+
+### APIキーが期限切れになった
+
+数日運用したところ、「The model provider failed after retries」というエラーで Bedrock が呼べなくなりました。ログを追うと、発行していた Bedrock APIキーが短期キー（デフォルトでは有効期限が短い）だったことが原因でした。
+
+長期キーを再発行して置き換えたのですが、再起動後も同じエラーが続きます。もう一段深く調べると、原因は APIキーとは別の場所にありました。AWS CLI の認証情報キャッシュ（`aws login` で発行される OAuth 方式のリフレッシュトークン）が別途期限切れになっており、gateway のプロセスがそちらを優先して使おうとしていたのです。
+
+Hermes 自身の設定読み込み処理を切り出して検証したところ、正しいトークンは環境変数へ載ることを確認できました。起動時のログからもエラーは消えたのですが、実運用できちんと通るかを最後まで見届ける前に、認証まわりを都度気にするのが煩雑になり、次に書くローカルモデルへの切り替えに進むことにしました。認証エラーが起きたときは、直接設定したキーだけでなく、環境にキャッシュされている別の認証情報が優先されていないかも疑う必要があると学びました。
+
+### ローカルモデルに切り替えた
+
+Bedrock 側の認証を都度気にするのが煩雑になったため、ローカルの Ollama で動かすモデルに切り替えることにしました。切り替え自体は設定ファイルを数行変更するだけですが、ここでも2つ落とし穴がありました。
+
+- Ollama 自体が起動していないと、gateway からの呼び出しがそのまま接続エラーになる
+- 「思考（thinking）」系のモデルは、応答の上限トークン数が小さいと思考過程だけでトークンを使い切ってしまい、本文が空になる
+
+Ollama を手動で起動しただけの状態だとセッション終了や再起動で落ちてしまうため、`brew services start ollama` で `launchd` 常駐化し、再起動後も自動で立ち上がるようにしました。
+
+### web検索がなぜか curl になる
+
+Hermes には web 検索ツールが組み込まれているのですが、モデルが検索の代わりに `curl` コマンドを直接叩こうとする場面がありました。調べると、検索プロバイダの APIキーがすべて未設定で、デフォルトのバックエンドがキーなしでは動作せずエラーになり、モデルがツールの利用を諦めてターミナル経由の代替手段に逃げていたことがわかりました。
+
+APIキーが不要な検索パッケージ（`ddgs`。DuckDuckGo をはじめ複数の検索エンジンをバックエンドに持つメタ検索ライブラリ）を導入し、バックエンドを切り替えることで解消しました。
 
 ```bash
-cd articles/ && hermes-agent-cli hello
+uv pip install --python <hermesのvenvパス>/bin/python ddgs
+hermes config set web.backend ddgs
 ```
-
-出力を実測すると以下の通りです：
-
-```
-Hello from Hermes Agent (v0.1)! Python SDK + Shell integration working!
-[SDK Status: OK]  Memory: loaded(hermes-shell version)
-Tools: default_tools, web_search, markdown_write_cmdline, hermes-memory
-```
-
-### 3. memory確認コマンドの実測
-
-Hermes Agentのmemory管理コマンドを実行してみます：
-
-```bash
-hermes-agent-cli agent --action setup --context test --config.yaml
-```
-
-出力結果(生データ)は以下の通り：
-
-| コマンド種別 | 内容 |
-|-------------|------|
-| `memory` | memory.yaml + user.yamlの初期読み込み |
-| `agent tools` | web検索・ファイル操作が初期状態 |
-| `session query` | 全セッションDBを読み込み |
-
-### 4. Python SDK検証
-
-次に、Python SDK経由(Hermes Agent CLI)でAPIを実行：
-
-```python
-from hermes_sdk_cli import agent, tools
-agent.tools(
-    memory_add="test",
-    file_search="./articles/**/*.md"
-)
-```
-
-この出力は以下のような構造になるはずです：
-
-```json
-{
-   "tools": [
-     {"name": "memory.yaml", "status": "ready", "yaml_keys": ["add","replace"]},
-     {"name": "session.db", "status": "valid", "total_sessions": "N"}
-   ]
-}
-```
-
-### 注意：macOS固有のコマンド制限について
-
-macOSでHomebrew(python3)を用いる際に、bashがないとエラーになります。これはMacの初期環境ではbashが有効化されていないためです。対応は以下の2通りがあります：
-
-1. `brew install bash` でbashをインストール
-2. 別のシェル(zshやfish)に切り替える
-
-ただしこのアプローチはmacOS固有のエラー・制限であり、検証時に実際に遭遇しました。(※注釈として明記しておく必要があります)
 
 ## まとめ
 
-Hermes AgentというCLIツールを実際にセットアップする過程で以下のような結果がありました：
+Hermes Agent のセットアップは、インストールコマンド自体は数個で終わりますが、Discord ボットとして安定稼働させるまでには複数のレイヤーでハマりポイントがありました。
 
-- **コマンドライン**(bashやzsh等の実行環境が必須
-- Python SDK(Hermes Agent CLI, memory.yaml)経由が安定・確認できる
-- **macOS固有のエラー**(bashがない、Homebrew依存)も理解する必要がある
+- LLM プロバイダの認証は「一度通った」で終わらせず、キーの有効期限の種類まで確認する
+- Discord のようなプラットフォーム連携では、アプリ側の権限設定（Intent）と自分側の許可リスト（allowlist）の両方を疑う
+- 常時稼働を目指すなら、電源管理と依存プロセス（Ollama など）の常駐化まで含めて設計する
 
-今後MacでのHermes Agentセットアップや検証を深掘りした記事を書く予定です(次の記事ネタは「CLIツール実測値の検証」)。
+私と同じように AI エージェントを常時稼働のボットとして動かしてみたい方の参考になれば嬉しいです。
 
----
+## 参考
 
-本記事は 2026年7月5日時点の情報で、Hermes Agent v0.x(ベータ版)を基に検証しています。最新の情報は[公式ドキュメント](https://hermes-agent.com/docs/)をご確認ください。
+- [Hermes Agent - GitHub (NousResearch)](https://github.com/NousResearch/hermes-agent)
+- [Amazon Bedrock クロスリージョン推論 - AWS公式ドキュメント](https://docs.aws.amazon.com/bedrock/latest/userguide/cross-region-inference.html)
+- [Discord Developer Docs - Gateway Privileged Intents](https://docs.discord.com/developers/events/gateway)
+- [ddgs - PyPI](https://pypi.org/project/ddgs/)
