@@ -1,4 +1,10 @@
-# MacのHermes Agentをセットアップして検証してみた
+---
+title: "MacのHermes Agentをセットアップして検証してみた"
+emoji: "🤖"
+type: "tech"
+topics: ["CLI", "Python", "macOS", "Hermes Agent"]
+published: false
+---
 
 ## はじめに
 
@@ -88,10 +94,10 @@ agent.tools(
 
 ```json
 {
-  "tools": [
-    {"name": "memory.yaml", "status": "ready", "yaml_keys": ["add","replace"]},
-    {"name": "session.db", "status": "valid", "total_sessions": "N"}
-  ]
+   "tools": [
+     {"name": "memory.yaml", "status": "ready", "yaml_keys": ["add","replace"]},
+     {"name": "session.db", "status": "valid", "total_sessions": "N"}
+   ]
 }
 ```
 
