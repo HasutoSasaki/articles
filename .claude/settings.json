@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "REPO=\"/Users/hasutosasaki/ghq/github.com/HasutoSasaki/articles\"; jq -r '.tool_input.file_path // .tool_response.filePath' | { read -r f; case \"$f\" in \"$REPO\"/articles/*|\"$REPO\"/devio/articles/*|\"$REPO\"/devio/assets/*|\"$REPO\"/drafts/*|\"$REPO\"/books/*) \"$REPO/scripts/sync-obsidian.sh\" 2>&1 || true ;; esac; }",
+            "statusMessage": "Obsidian(iCloud)へ同期中..."
+          }
+        ]
+      }
+    ]
+  }
+}
