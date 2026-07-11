@@ -8,32 +8,37 @@ published: false
 
 こんにちは 人材育成室 育成メンバーチームで 研修中の はすと です。
 
-前回、Mac mini に Hermes Agent をセットアップした記事を書きました。そのとき、Hermes の標準メモリ（`MEMORY.md` / `USER.md`）だけでは文字数上限（2200文字 / 1375文字）に引っかかるという話になり、外部メモリとして ChromaDB を使う仕組みをエージェント自身に構築してもらっていました。
+前回、Mac mini に Hermes Agent をセットアップした記事を書きました。運用しているうちに、以前のセッションでエージェント自身が `~/.hermes/scripts/chroma_memory.py` という ChromaDB を使ったメモリ拡張スクリプトを作っていたことに気づきました。動いてはいたのですが、正直なところ中身をあまり理解していませんでした。ChromaDB にどう保存されて、どう検索されているのか、AIに任せきりのままです。
 
-動いてはいたのですが、正直なところ中身をあまり理解していませんでした。ChromaDB にどう保存されて、どう検索されているのか、AIに任せきりのままです。これでは自分の記憶基盤なのに何かあったときに手が出せないなと思い、自分の手を動かして検証してみることにしました。
+これでは自分の記憶基盤なのに何かあったときに手が出せないなと思い、自分の手を動かして検証してみることにしました。検証を始める前に、そもそも Hermes Agent の公式ドキュメントではメモリがどう設計されているのかも確認しています。
 
-本記事では、ChromaDB の `query()` と `get()` の挙動を実際に検証し、その過程で自分の Hermes Agent のメモリツールに実際に起きていたバグの原因を突き止めた結果をまとめます。
+本記事では、Hermes Agent 公式のメモリ設計を踏まえた上で、ChromaDB の `query()` と `get()` の挙動を実際に検証し、その過程で自分の Hermes Agent のメモリツールに実際に起きていたバグの原因を突き止めた結果をまとめます。
 
 ## Hermes Agentのメモリ構成
 
-Hermes Agent には2層のメモリがあります。
+[公式ドキュメント](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)を確認すると、Hermes Agent のメモリは次のように設計されていました。
 
-- **built-in memory**: `MEMORY.md`（~2200文字）/ `USER.md`（~1375文字）。セッションごとに自動で読み込まれる高レベルな事実
-- **local RAG memory**: `~/.hermes/local_rag/chroma_db` に置かれた ChromaDB。built-in memory に入りきらない詳細な知識を、意味検索（semantic search）で引き出す
+- **built-in memory**: `MEMORY.md`（2,200文字）/ `USER.md`（1,375文字）。セッション開始時にシステムプロンプトへ凍結スナップショットとして注入され、`memory` ツール（add/replace/remove）でエージェント自身が管理する
+- **セッション検索**: 過去の会話全体を SQLite に全文検索インデックス付きで保存し、built-in memory に載らなかったやり取りも参照できる
+- **拡張メモリプロバイダー**: Honcho / OpenViking / Mem0 / Hindsight / Holographic / RetainDB / ByteRover / Supermemory の8種類が公式にプラグインとして用意されている。公式ドキュメントには "External providers run alongside built-in memory (never replacing it)" とあり、built-in memory を置き換えるのではなく、知識グラフやセマンティック検索などを追加する立場として位置づけられています
 
-後者を操作する CLI が `~/.hermes/scripts/chroma_memory.py` です。`add` / `search` / `list` / `stats` などのサブコマンドを持つ、よくある構成のスクリプトです。
+自分の `~/.hermes/config.yaml` を確認したところ、有効化されているのは built-in memory（`memory` トークンセット）だけで、8種類の公式プラグインはどれも有効化されていませんでした。
+
+つまり `~/.hermes/scripts/chroma_memory.py` は、この8種類の公式プラグインのどれでもありません。以前のセッションでエージェントが Skill（`~/.hermes/skills/mlops/local-rag-memory/`）として独自に書いた、Hermes Agent の公式なメモリアーキテクチャの外側にあるスクリプトでした。
 
 全体像は以下のような構成になっています。
 
 ```mermaid
 flowchart LR
-    Agent[Hermes Agent] --> Built[built-in memory]
-    Agent --> Rag[local RAG memory]
+    Agent[Hermes Agent 公式設計] --> Built[built-in memory]
+    Agent --> Providers["拡張メモリプロバイダー (公式・8種)\nmem0 / hindsight / honcho など"]
 
     Built --> Memory["MEMORY.md 最大2200文字"]
     Built --> User["USER.md 最大1375文字"]
 
-    Rag --> Chroma["ChromaDB PersistentClient\n~/.hermes/local_rag/chroma_db"]
+    Providers -.公式だが今回は未使用.-> NotUsed[config.yamlで未有効化]
+
+    Custom["独自Skill (公式アーキテクチャの外)\nlocal-rag-memory"] --> Chroma["ChromaDB PersistentClient\n~/.hermes/local_rag/chroma_db"]
     Chroma --> Cli["chroma_memory.py"]
     Cli --> Add[add]
     Cli --> Search[search]
@@ -249,16 +254,18 @@ print(col._embedding_function)
 
 ## まとめ
 
+- Hermes Agent は公式に built-in memory（`MEMORY.md` / `USER.md`）と、8種類の拡張メモリプロバイダー（mem0 / hindsight / honcho など）をプラグインとして持つ設計になっている。今回の ChromaDB スクリプトはそのどちらでもなく、以前のセッションでエージェントが独自に書いた Skill だった
 - `query()` は常に二重リストで返る。外側のリストは「クエリの本数」を表す次元で、クエリが1件でも省略されない
 - `get()` にはクエリという概念がないため、常にフラットなリストで返る
 - 自分の Hermes Agent のメモリツールには、この違いを取り違えた `KeyError: 0` の実バグが実際に存在しており、`[0]` を1箇所外すことで修正できた
 - 一緒に置かれていたAI生成のドキュメント同士でも、この挙動について矛盾した記述があった
 - 埋め込みモデルについても、ドキュメントに書かれた構成（SentenceTransformer + MPS）と実際のコードの実装（ChromaDB標準の DefaultEmbeddingFunction）が食い違っていた
 
-AIエージェントに構築を任せたインフラほど、動いているからと安心せず自分の手で検証する価値があると実感しました。私と同じように ChromaDB をエージェントの外部メモリとして使っている方の参考になれば嬉しいです。
+AIエージェントに構築を任せたインフラほど、動いているからと安心せず自分の手で検証する価値があると実感しました。特に今回は、Hermes Agent 自体が公式に用意している拡張メモリプロバイダーを使わず、ゼロから ChromaDB スクリプトを書いていたという点が一番の気づきでした。公式ドキュメントを読まずにAIの実装をそのまま受け入れていたら、気づけなかったと思います。私と同じように ChromaDB をエージェントの外部メモリとして使っている方の参考になれば嬉しいです。
 
 ## 参考
 
+- [Hermes Agent Memory - 公式ドキュメント](https://hermes-agent.nousresearch.com/docs/user-guide/features/memory)
 - [Chroma Docs](https://docs.trychroma.com/)
 - [chromadb - PyPI](https://pypi.org/project/chromadb/)
 - [Hermes Agent - GitHub (NousResearch)](https://github.com/NousResearch/hermes-agent)
