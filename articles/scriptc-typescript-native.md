@@ -1,0 +1,1 @@
+../devio/articles/scriptc-typescript-native.md
