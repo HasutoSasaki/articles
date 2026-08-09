@@ -67,7 +67,7 @@ non-blocking socketと`epoll`でI/Oの準備ができるまで待つ、という
 今回実行するファイルは、リポジトリのルートから見ると次のものです。
 
 ```text
-experiment/scripts/single-fetch/fetch-lifecycle.mjs
+scripts/single-fetch/fetch.mjs
 ```
 
 Docker内でNode.jsと`strace`を実行します。`fetch()`は、外部公開APIへ読み取り専用のGETを1回だけ送ります。
@@ -84,16 +84,15 @@ strace 6.13+ds-1
 
 ## 検証コード
 
-Docker内では、`/work/scripts/single-fetch/fetch-lifecycle.mjs`として実行します。外部APIへ`fetch()`を1回呼び出します。
+Docker内では、`/work/scripts/single-fetch/fetch.mjs`として実行します。外部APIへ`fetch()`を1回呼び出します。
 
 この記事で見るのは、`fetch()`を呼び出したあとに記録されたシステムコールです。
 
 ## 実行するコマンド
 
-検証用ディレクトリへ移動してから、Dockerイメージを作成し、保存先を指定して実行します。
+検証リポジトリのルートから、Dockerイメージを作成し、保存先を指定して実行します。
 
 ```bash
-cd experiment
 docker build -t await-strace-lab .
 ```
 
@@ -107,8 +106,8 @@ Node.jsプロセスは、次の`strace`で追跡されます。
 
 ```bash
 strace -f -ttt -yy -e trace=network,read,write \
-  -o /work/results/fetch-lifecycle.strace \
-  node /work/scripts/single-fetch/fetch-lifecycle.mjs
+  -o /work/results/fetch.strace \
+  node /work/scripts/single-fetch/fetch.mjs
 ```
 
 - `-f`: Node.jsが使う別スレッドも追跡するため
@@ -119,7 +118,7 @@ strace -f -ttt -yy -e trace=network,read,write \
 実行結果は、次のファイルに保存されます。
 
 ```text
-results/fetch-lifecycle.strace
+results/fetch.strace
 ```
 
 ## 結果の全体像
