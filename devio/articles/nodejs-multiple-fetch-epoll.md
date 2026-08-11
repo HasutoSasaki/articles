@@ -1,5 +1,5 @@
 ---
-title: "複数のfetch()で始まるI/Oをepollで見てみた"
+title: "Node.jsで複数のfetch()を呼んだとき、I/Oはどう進むのかをstraceで覗いてみた"
 emoji: "🔍"
 type: "tech"
 topics: ["javascript", "nodejs", "linux", "strace"]
