@@ -1,0 +1,1 @@
+../devio/articles/aws-iot-nodejs-virtual-device.md
