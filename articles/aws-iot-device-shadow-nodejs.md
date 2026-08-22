@@ -1,0 +1,1 @@
+../devio/articles/aws-iot-device-shadow-nodejs.md
