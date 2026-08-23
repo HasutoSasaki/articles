@@ -422,6 +422,10 @@ sequenceDiagram
 
 Classic Shadowで`desired.power`と`reported.power`がどちらも`off`になり、`delta`がなくなることを確認します。
 
+![接続中にdesired.powerをoffへ変更した後、reported.powerもoffへ同期されたClassic Shadow](/images/aws-iot-device-shadow-nodejs/08-online-synced-off.png)
+
+この画面から、Node.jsが差分を受け取って`reported.power`を更新し、希望状態とのずれが解消されたことが分かります。
+
 ## 検証結果
 
 Node.jsを停止している間も、コンソールから更新した`desired.power=on`がClassic Shadowに保持されました。この時点では`reported.power=off`のままで、AWS IoT Coreが`delta.power=on`を算出しています。
