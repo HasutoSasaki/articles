@@ -1,12 +1,12 @@
 ---
-title: "M5StickS3のIMUデータをBasic IngestからGrafanaで可視化してみた"
+title: "筋トレの分析をするために、M5StickS3のIMUデータを収集して可視化するパイプラインを作ってみた"
 emoji: "🏋️"
 type: "tech"
 topics: ["aws", "iot", "m5stack", "grafana", "athena"]
 published: false
 ---
 
-# M5StickS3のIMUデータをBasic IngestからGrafanaで可視化してみた
+# 筋トレの分析をするために、M5StickS3のIMUデータを収集して可視化するパイプラインを作ってみた
 
 こんにちは、クラスメソッド製造ビジネステクノロジー部のはすとです。
 
@@ -19,7 +19,7 @@ published: false
 
 この実装では、BMI270のIMUデータをアプリケーション側で10 Hzに設定して取得します。10件ずつJSONにまとめ、AWS IoT CoreへMQTT/TLSで送信します。
 
-![M5StickS3からローカルGrafanaまでのデータ収集・可視化の構成図](/images/m5sticks3-basic-ingest-firehose-athena-grafana/architecture.png)
+![M5StickS3からローカルGrafanaまでのデータ収集・可視化の構成図](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195729/2026/09/12/r4x1tsnkpm78zrb6nyup.png)
 
 
 この構成では、FirehoseがS3へファイルを書き出してからGrafanaに見えるまで、最大約60秒の待ち時間がありますが、デバイスにリアルタイムで載せたいわけではなく、あくまで分析データとして貯めておくのを目的としています。
@@ -203,7 +203,7 @@ Grafanaは起動時の認証情報でAthenaへ接続します。ログインし�
 
 ブラウザで<http://localhost:3000>を開きます。`.env`がなければ、ローカル検証用のログインは`admin / admin`です。
 
-![Grafanaのログイン画面。ローカル検証ではユーザー名とパスワードにadminを入力する](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-login.jpg)
+![Grafanaのログイン画面。ローカル検証ではユーザー名とパスワードにadminを入力する](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195771/2026/09/12/sfr0f7vodsdwepvlzzow.jpg)
 
 #### 動作確認用ダッシュボードを開く
 
@@ -218,15 +218,15 @@ Grafanaのデータソースは、グラフに表示するデータの取得先�
 1. 左メニューの **Dashboards** を開き、**New** から **New dashboard** を選びます。
 2. 画面右端の **Add** を押し、開いたメニューの **Panel** をクリックします。
 
-![新しいダッシュボードの右側にあるAddメニューで、赤枠のPanelをクリックする画面](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-dashboard-add-panel-annotated.png)
+![新しいダッシュボードの右側にあるAddメニューで、赤枠のPanelをクリックする画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195737/2026/09/12/bynbc2zmd9kqm7oltxfe.png)
 
 3. 新しいパネルが追加されたら、中央の **Configure visualization** をクリックします。
 
-![新しいパネルの中央にあるConfigure visualizationを赤枠で示した画面](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-panel-created-annotated.png)
+![新しいパネルの中央にあるConfigure visualizationを赤枠で示した画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195777/2026/09/12/w0pxamodn65mgnyzca9e.png)
 
 4. 開いたパネルエディタのQueryタブで、データソースに **Training Athena** を選びます。
 
-![Grafanaのパネル編集画面で、赤枠のTraining Athenaデータソースを選ぶ画面](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-query-run-annotated.png)
+![Grafanaのパネル編集画面で、赤枠のTraining Athenaデータソースを選ぶ画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195801/2026/09/12/xmy0ym7tpslqvuevursf.png)
 
 5. 次のSQLを入力します。Grafanaの時系列パネルは、時刻列を`time`という名前で受け取り、残りの数値列を系列として表示します。
 
@@ -249,7 +249,7 @@ ORDER BY time;
 
 SQLはQueryタブの下部にある入力欄へ貼り付けます。上の画像ではデータソースを、下の画像ではSQL入力欄と**Run query**を確認できます。
 
-![GrafanaのAthena SQL入力欄を赤枠で示し、IMU値を取得するクエリを編集する画面](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-query-editor-annotated.png)
+![GrafanaのAthena SQL入力欄を赤枠で示し、IMU値を取得するクエリを編集する画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195786/2026/09/12/cfbxurlhdtnqpjvmy7jg.png)
 
 6. `datehour`と`device_id`を、S3に保存された時刻とAWS IoT Thing名に置き換えます。たとえば、保存先が`raw/2026/08/30/14/`でThing名が`m5sticks3-01`なら、次の値です。
 
@@ -262,7 +262,7 @@ device_id: m5sticks3-01
 
 実機データの`ax`、`ay`、`az`を時系列として表示できました。
 
-![Grafanaで実機IMU加速度のax、ay、azを時系列で表示した画面](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-query-result.jpg)
+![Grafanaで実機IMU加速度のax、ay、azを時系列で表示した画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195794/2026/09/12/k8nequ4hvawzkwiljoo3.jpg)
 
 #### 表示条件を指定する
 
@@ -270,7 +270,7 @@ device_id: m5sticks3-01
 2. **時間範囲の操作**: 前後の時間帯への移動、拡大、更新を行えます。過去データを見るときは、①の保存時刻に合う時間帯へ合わせます。
 
 
-![赤枠で保存時刻・デバイスIDと時間範囲の操作を示したGrafanaダッシュボード](/images/m5sticks3-basic-ingest-firehose-athena-grafana/grafana-dashboard-controls-annotated.png)
+![赤枠で保存時刻・デバイスIDと時間範囲の操作を示したGrafanaダッシュボード](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1789195747/2026/09/12/vkgrjosgcbdopz5nyzij.png)
 
 
 上部の入力欄には、保存時刻を`yyyy/MM/dd/HH`形式、デバイスIDにはAWS IoT Thing名を指定します。過去データを表示する場合は、Grafanaの時間範囲も対象時刻へ合わせるか、パネルの`Zoom to data`を使います。
