@@ -148,7 +148,7 @@ AWS IoT Coreの画面左にあるナビゲーションで、「管理」の中�
 
 「ポリシー名」に`nodejs-thing-demo-shadow-policy`を入力し、「ポリシードキュメント」を「JSON」表示へ切り替えます。
 
-![Shadow用ポリシーの名前を入力した画面](/images/aws-iot-device-shadow-nodejs/05-create-shadow-policy.png)
+![Shadow用ポリシーの名前を入力した画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447082/2026/08/23/j9c5k5ruplwrrdrxnr4f.png)
 
 次の内容を入力し、「作成」を選択します。`<ACCOUNT_ID>`は、自分のAWSアカウントIDへ置き換えてください。
 
@@ -188,11 +188,11 @@ AWS IoT Coreの画面左にあるナビゲーションで、「管理」の中�
 
 続いて、作成したポリシーをデバイス証明書へ追加します。「管理」→「すべてのデバイス」→「モノ」から`nodejs-thing-demo`を開き、「証明書」タブで証明書を選択します。「ポリシー」タブの「ポリシーをアタッチ」を選び、`nodejs-thing-demo-shadow-policy`へチェックを入れます。
 
-![追加するShadow用ポリシーを選択した画面](/images/aws-iot-device-shadow-nodejs/06-attach-shadow-policy.png)
+![追加するShadow用ポリシーを選択した画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447089/2026/08/23/uoxkygucp8cpw02nvv1n.png)
 
 「ポリシーをアタッチ」を選択します。接続用の`nodejs-thing-demo-Policy`は外さず、`nodejs-thing-demo-shadow-policy`を追加します。証明書に2つのポリシーが表示されれば完了です。
 
-![既存の証明書へShadow用ポリシーを追加した結果](/images/aws-iot-device-shadow-nodejs/07-attached-shadow-policy.png)
+![既存の証明書へShadow用ポリシーを追加した結果](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447097/2026/08/23/hay6b5qic9poemv2xoip.png)
 
 ## Node.jsを仮想ライトとして動かす
 
@@ -337,7 +337,7 @@ AWS IoT Coreの画面左にあるナビゲーションで、「管理」の中�
 
 Shadowドキュメントの`reported.power`が`off`になっていることを確認します。
 
-![reported.powerがoffになったClassic Shadow](/images/aws-iot-device-shadow-nodejs/01-initial-reported-off.png)
+![reported.powerがoffになったClassic Shadow](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447056/2026/08/23/gmn5qttkjnq9f2bcmqtj.png)
 
 ## オフライン中に希望状態を変更する
 
@@ -357,11 +357,11 @@ AWS IoT CoreのClassic Shadow画面で「編集」を選択し、`desired.power`
 
 「Device Shadow の状態」へ上記のJSONを入力し、「更新」を選択します。
 
-![desired.powerをonへ変更する画面](/images/aws-iot-device-shadow-nodejs/02-edit-desired-on.png)
+![desired.powerをonへ変更する画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447064/2026/08/23/putmvhlbulrwowozir83.png)
 
 Node.jsは停止しているため、仮想ライトの状態はまだ変わりません。Shadowには`desired.power=on`と`reported.power=off`が残り、その差として`delta.power=on`が確認できる状態になります。
 
-![オフライン中にdesiredとreportedの差がdeltaとして表示された画面](/images/aws-iot-device-shadow-nodejs/03-offline-delta.png)
+![オフライン中にdesiredとreportedの差がdeltaとして表示された画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447071/2026/08/23/rajkm5fcwoomplhqnjvg.png)
 
 ## Node.jsを再接続する
 
@@ -383,7 +383,7 @@ Shadowを取得しました
 
 Classic Shadowを確認し、`desired.power`と`reported.power`がどちらも`on`になっていることを確認します。両者が一致すると差分がなくなるため、`delta.power`は表示されなくなります。
 
-![再接続後にdesired.powerとreported.powerがonで一致した画面](/images/aws-iot-device-shadow-nodejs/04-synced-reported-on.png)
+![再接続後にdesired.powerとreported.powerがonで一致した画面](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787447077/2026/08/23/xfkwxcm27ljjaffwai0f.png)
 
 ## Node.jsを起動したまま状態を変更する
 
@@ -422,7 +422,7 @@ sequenceDiagram
 
 Classic Shadowで`desired.power`と`reported.power`がどちらも`off`になり、`delta`がなくなることを確認します。
 
-![接続中にdesired.powerをoffへ変更した後、reported.powerもoffへ同期されたClassic Shadow](/images/aws-iot-device-shadow-nodejs/08-online-synced-off.png)
+![接続中にdesired.powerをoffへ変更した後、reported.powerもoffへ同期されたClassic Shadow](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787454742/2026/08/23/jljzmxb3tigzme4vp4zr.png)
 
 この画面から、Node.jsが差分を受け取って`reported.power`を更新し、希望状態とのずれが解消されたことが分かります。
 
