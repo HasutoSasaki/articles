@@ -1,5 +1,5 @@
 ---
-title: "TypeScriptをNode.jsなしの実行ファイルにするscriptcを試してみた"
+title: "TypeScriptからネイティブバイナリにコンパイルできるscriptcを試してみた"
 emoji: "⚙️"
 type: "tech"
 topics: ["typescript", "scriptc", "compiler", "nodejs"]
@@ -8,7 +8,7 @@ published: false
 
 こんにちは 人材育成室 育成メンバーチームで 研修中の はすと です。
 
-最近、Vercel LabsからTypeScriptをネイティブ実行ファイルにする`scriptc`が公開されていました。Node.jsなしでどのように実行するのか気になったので、`scriptc`の対応範囲を公式情報と3つのサンプルで整理し、`coverage`の出力とNode.jsとの挙動の違いを確認してみます。
+最近、Vercel LabsからTypeScriptをコンパイルしてNode.jsなしのネイティブ実行ファイルを生成する`scriptc`が公開されていました。TypeScriptのどこまでが実際にネイティブコードへ変換されるのか気になったので、`scriptc`の対応範囲を公式情報と3つのサンプルで整理し、`coverage`の出力とNode.jsとの挙動の違いを確認してみます。
 
 ## scriptcとは
 

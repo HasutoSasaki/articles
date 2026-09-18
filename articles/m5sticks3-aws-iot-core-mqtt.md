@@ -58,11 +58,11 @@ M5StickS3 は 10 秒ごとに Wi-Fi の受信信号強度と連番を送信し�
 1. AWS IoT Core コンソールの「管理」→「すべてのデバイス」→「モノ」を開き、今回作成したモノを選択します。
 2. 「証明書」タブを開き、今回作成したデバイス証明書を選択します。ステータスが `アクティブ` であることを確認します。`非アクティブ` の場合は、「アクション」から有効化します。
 
-![デバイス証明書がアクティブであることを確認する](/images/m5sticks3-aws-iot-core-mqtt/03-certificate-active.jpg)
+![デバイス証明書がアクティブであることを確認する](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787994210/2026/08/29/sj0jasvjwkn5fvvs5w9u.jpg)
 
 3. 証明書の詳細画面で「ポリシー」タブを開き、作成済みの IoT ポリシーが表示されることを確認します。表示されない場合は、「ポリシーをアタッチ」から関連付けます。
 
-![証明書にIoTポリシーが関連付いていることを確認する](/images/m5sticks3-aws-iot-core-mqtt/03-policy-attached.jpg)
+![証明書にIoTポリシーが関連付いていることを確認する](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787994216/2026/08/29/j2nrggdoixmlmadhf8vn.jpg)
 
 モノと証明書を関連付けるだけでは、MQTT 接続の権限は付与されないため、証明書へ IoT ポリシーを関連付ける必要があります。
 
@@ -99,13 +99,13 @@ https://static-cdn.m5stack.com/resource/arduino/package_m5stack_index.json
 
 次に、サイドバーの「Boards Manager」を開き、`M5Stack` を検索して導入します。私の環境では 3.3.9 を導入しました。ボード一覧に `M5StickS3` が含まれることを確認できます。
 
-![M5Stack のボードパッケージを導入した Arduino IDE](/images/m5sticks3-aws-iot-core-mqtt/01-m5stack-board-manager-highlighted.png)
+![M5Stack のボードパッケージを導入した Arduino IDE](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787994154/2026/08/29/ktusdfdgrwg6sqwbppjn.png)
 
 次に「Library Manager」で `M5Unified` と `PubSubClient` を検索して導入します。`M5Unified` の導入時に `M5GFX` の導入を確認できたら、「INSTALL ALL」を選びます。私の環境では、M5Unified 0.2.20、M5GFX 0.2.28、PubSubClient 2.8.0 を導入しました。
 
 続いて、M5Stack の公式手順では、書き込みモードに入るため、側面のリセットボタンを約2秒押して緑の LED が点滅したら離します。USB で接続してから、上部のボード選択で `M5StickS3` と表示された USB ポートを選びます。ポート名は Mac ごとに異なります。
 
-![M5StickS3 と USB ポートを選択した Arduino IDE](/images/m5sticks3-aws-iot-core-mqtt/02-m5sticks3-port-selected-highlighted.png)
+![M5StickS3 と USB ポートを選択した Arduino IDE](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787994189/2026/08/29/ncisj6rbst5ainv9sfb3.png)
 
 実機用のスケッチは、専用の Private リポジトリで管理します。証明書や秘密鍵はリポジトリへコミットせず、Git 管理外の `data/aws-iot/` へ置きます。
 
@@ -201,7 +201,7 @@ mqttClient.setCallback(onMessage);
 
 2. M5StickS3 を起動します。Wi-Fi、時刻同期、TLS 接続が完了すると、10 秒ごとに `m5sticks3-iot-demo/telemetry` へ受信信号強度と連番を送ります。テストクライアントに `telemetry` が表示されれば、M5StickS3 から AWS IoT Core への送信成功です。
 
-   ![MQTT テストクライアントで受信した telemetry](/images/m5sticks3-aws-iot-core-mqtt/04-mqtt-command-status-highlighted.png)
+   ![MQTT テストクライアントで受信した telemetry](https://devio2024-media.developers.io/image/upload/f_auto/q_auto/v1787994220/2026/08/29/co9fbe3vvbrbmo0xq9bl.png)
 
 3. 「トピックに公開する」で、次のコマンドを送ります。
 
