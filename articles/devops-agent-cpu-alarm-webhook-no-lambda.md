@@ -8,16 +8,11 @@ published: false
 
 こんにちは、製造ビジネステクノロジー部のはすとです。
 
-CPUのアラームが鳴ったときの調査は、「処理件数が増えたから」というメトリクスの話で止まりがちですよね。
-本当に知りたいのは、どのコードが重いのか、どう直せばよいのかのほうです。
-AWS DevOps AgentはGitHubのリポジトリを読めるので、アラームを起点にコードの改善案まで出してくれるのでは？と気になりました。
+CPU負荷が上がった際などに、AWS DevOps Agent にコードまで見たうえで調査報告をさせたいなと思い調べてみたところ、CloudWatchアラームとDevOps Agent　WebhookのあいだにLambdaを挟む構成が見つかりました。
+しかし、Lambdaを使わずにできないのかと思い、検証してみることにしました。
 
-あわせて、アラームから調査を起動する部分も気になっていました。
-既存の検証記事では、CloudWatchアラームとDevOps AgentのWebhookのあいだにLambdaを挟む構成が多く見られます。
-LambdaなしでCloudWatchから直接つなげられれば、そのほうが構成はシンプルです。
-
-本記事では、わざと重い処理を入れたワーカーをECS Fargateで動かし、CPUアラームからLambdaなしで調査を起動して、コード単位の改善案が出るかを試した結果をまとめます。
-結論から書くと、Lambdaなしで調査は起動でき、重い関数と行番号まで特定されました。
+本記事では、わざと重い処理を入れたワーカーをECS Fargateで動かし、CPUアラームからLambdaなしで調査を起動して、コードを見たうえでの調査報告を出してくれるのかを確かめてみました。
+結論として、Lambdaなしで調査は起動でき、重い関数と行番号まで特定されました。
 ただし、今回の環境には答えを見つけやすくするヒントが残っていたので、その点もあわせて書きます。
 
 ## 検証環境
@@ -44,14 +39,12 @@ Agent Space、GitHubとの関連付け、ECS、アラーム、EventBridgeは、�
 
 いずれも2026年10月時点のCloudFormationのスキーマで確認した内容です。
 
-## LambdaなしでWebhookを呼べる理由
+## LambdaなしでWebhookを呼ぶ方法
 
-DevOps Agentの汎用Webhookは、作成時に認証方式を選べます。
+DevOps Agentの汎用Webhookは、作成時に「HMACか、APIキー」の認証方式を選べます。
 
 > Choose an authentication method: HMAC or API key (bearer token).
 > — [Invoking DevOps Agent through Webhook - AWS DevOps Agent](https://docs.aws.amazon.com/devopsagent/latest/userguide/configuring-integrations-and-knowledge-invoking-devops-agent-through-webhook.html)
-
-和訳すると「認証方式を選んでください。HMACか、APIキー（Bearerトークン）です」となります。
 
 HMAC方式だと、リクエストごとにタイムスタンプと本文から署名を計算して付ける必要があります。
 EventBridgeだけでは署名を計算できないので、この方式ではLambdaが必要です。
@@ -304,6 +297,10 @@ CPUは毎分少しずつ上がり、20分ほどかけてしきい値を超える
 Fargateの0.25vCPUは、手元のMacよりかなり遅いようです。
 件数が増え始めてすぐの6,000件台の段階で、CPUが上限に達していました。
 
+CloudWatchのアラームの画面では、CPU使用率のグラフの下に、ALARMだった期間が赤い帯で表示されます。
+
+![CloudWatch のアラーム画面。CPU 使用率が 13:24 ごろから 100% に張り付き、下の帯で 13:30 から 13:44 ごろまでが ALARM になっている](/images/devops-agent-cpu-alarm-webhook-no-lambda/cloudwatch-alarm.png)
+
 そこからの流れは、次のとおりです。
 
 | 時刻 | 出来事 |
@@ -315,12 +312,25 @@ Fargateの0.25vCPUは、手元のMacよりかなり遅いようです。
 
 アラームがALARMになってから1秒で調査が始まり、約13分で終わりました。
 
-![インシデントレスポンスの一覧。アラーム起点の調査が Event Channel から起動され、完了している](/images/devops-agent-cpu-alarm-webhook-no-lambda/incident-list.png)
+調査の様子は、Agent SpaceのWeb App（`https://<Agent Space ID>.aidevops.global.app.aws/`）で確認できます。
+左メニューの「インシデントレスポンス」を開くと、調査の一覧が表示されます。
+Webhookから起動した調査は、「以下によってトリガーされます」の列が「Event Channel」になっていました。
+
+![Web App のインシデントレスポンスの一覧。左メニューの「インシデントレスポンス」と、アラーム起点の調査の行を囲んでいる](/images/devops-agent-cpu-alarm-webhook-no-lambda/webapp-incident-list.png)
+
+一覧の行を選ぶと、調査の詳細が開きます。
+詳細には「概要」「調査タイムライン」「根本原因」「緩和計画」の4つのタブがあります。
+「調査タイムライン」では、エージェントが何を考えてどのツールを呼んだかが、開始からの経過時間つきで並んでいます。
+先頭には、Webhookで送ったtitleとdescriptionがそのまま表示されていました。
+
+![調査の詳細画面。4 つのタブを囲み、調査タイムラインを開いている。アカウント ID やリソース名は伏せている](/images/devops-agent-cpu-alarm-webhook-no-lambda/webapp-timeline.png)
 
 ## 調査レポートの中身
 
 エージェントは、メトリクスとログを読むサブエージェントと、デプロイ履歴とコードを読むサブエージェントを並行して動かしていました。
 両方の結果から、根本原因は重複除去の関数だと特定しています。
+
+「概要」タブには、インシデントの概要、根本原因、緩和策がまとまっています。
 
 ![調査レポートの概要。根本原因として重複除去の関数と行番号が挙がっている](/images/devops-agent-cpu-alarm-webhook-no-lambda/root-cause.png)
 
@@ -341,6 +351,10 @@ Fargateの0.25vCPUは、手元のMacよりかなり遅いようです。
 
 改善案は、すぐできる緩和策と恒久対策の2段に分かれていました。
 緩和策は、環境変数で件数の増加を止めつつCPUを増やす案で、準備、事前確認、適用、事後確認、切り戻しのECSのコマンドまで付いています。
+「緩和計画」タブを開くと、手順がステップごとに並び、コマンドはそのままコピーできるようになっていました。
+
+![緩和計画タブ。即時緩和のステップ 1 として、現行のタスク定義とサービス構成を記録する ECS のコマンドが並んでいる](/images/devops-agent-cpu-alarm-webhook-no-lambda/webapp-mitigation.png)
+
 恒久対策には、修正後のコードが示されていました。
 
 ```js
