@@ -31,15 +31,7 @@ LambdaなしでCloudWatchから直接つなげられれば、そのほうが構�
 
 以下のような流れになります。
 
-```
-ECS Fargate のワーカー（CPU が上がる）
-  └─ CloudWatch アラーム（70% を 3 分連続で超えたら ALARM）
-       └─ EventBridge ルール（アラームの状態変化イベントを拾う）
-            └─ API 送信先（Webhook に POST）
-                 └─ DevOps Agent の調査
-                      ├─ CloudWatch のメトリクスとログを読む
-                      └─ GitHub のソースコードを読む
-```
+![構成図。ECS Fargate のワーカーの CPU が上がると CloudWatch アラームが ALARM になり、EventBridge ルールと API 送信先が DevOps Agent の Webhook を呼ぶ。DevOps Agent は CloudWatch と GitHub を読んで調査する](/images/devops-agent-cpu-alarm-webhook-no-lambda/architecture.png)
 
 Agent Space、GitHubとの関連付け、ECS、アラーム、EventBridgeは、すべて1つのCDKスタックで作りました。
 ただし、CDKで作れない部分が3つあり、そこはコンソールで操作しています。
