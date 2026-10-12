@@ -8,19 +8,18 @@ published: false
 
 こんにちは、製造ビジネステクノロジー部のはすとです。
 
-AWS DevOps AgentをSlackから使っていると、返答に絵文字付きの見出しや表が並び、時刻もUTCのままで読みにくいと感じることがありました。
-DevOps Agentには、毎回読ませる指示を書いておけるAGENTS.md（Agent instructions）があります。
-これで返答の形式を変えられるのか試してみたところ、Web Appでは反映されたのに、Slackでは反映されませんでした。
-ただし、AGENTS.mdに「この書式を優先する」と書き足すと、Slackでも反映されるようになりました。
+AWS DevOps AgentをSlackから使っていたときに、返答に絵文字付きの見出しや表が並び、時刻もUTCのままで読みにくいと感じていました。
+DevOps Agentには、毎回読ませる指示を書いておけるAGENTS.mdがあります。このファイルを使い、返答の形式を変えられるのか試してみたところ、Web Appでは反映されましたが、Slackでは反映されませんでした。
 
-本記事では、Slackで反映されなかった理由と、反映させるために書き足した内容をまとめます。
+本記事では、Slackで反映されなかった理由と、AGENTS.mdに書き足してSlackでも反映させた方法をまとめます。
 
 ## 検証環境
 
-- 2026年10月時点
-- リージョン: ap-northeast-1
-- Slackアプリ: AWS DevOps Agent - AP (Tokyo)（プライベートチャンネル、双方向通信あり）
-- AGENTS.mdの登録: aws-cdk-lib 2.269.0 の `CfnAsset`
+2026年10月時点の情報です。
+
+- リージョン: 東京（ap-northeast-1）
+- Slack: プライベートチャンネル
+- AWS CDK: aws-cdk-lib 2.269.0
 
 ## AGENTS.md（Agent instructions）とは
 
@@ -76,9 +75,13 @@ Chat用のAGENTS.mdには、Slackのチャットでの答え方を書きまし�
 - 絵文字と感嘆符は使わない
 ```
 
-今回はCDKの`CfnAsset`で登録しました。
+今回はCDKで登録しました。
+aws-cdk-lib 2.269.0から入った`aws-devopsagent`モジュールの`CfnAsset`を使います。
+CloudFormationの`AWS::DevOpsAgent::Asset`をそのまま書くクラスです。
 
 ```typescript
+import * as devopsagent from "aws-cdk-lib/aws-devopsagent";
+
 new devopsagent.CfnAsset(this, "AgentsMdChat", {
   agentSpaceId: "<Agent SpaceのID>",
   assetType: "agents_md",
@@ -94,11 +97,9 @@ new devopsagent.CfnAsset(this, "AgentsMdChat", {
 Slackのチャンネルで、DevOps Agentに直近24時間にALARMになったアラームを聞いてみました。
 AGENTS.mdを読んでいれば、JSTの時刻で、見出しも表も絵文字もない返答になるはずです。
 
-返答です（アラーム名などは置き換えています。以降の画像とテキストも同じです）。
+![Slackでの返答。絵文字付きの見出し、コードブロックに入った表、UTCの時刻が並び、「*6 件*」のようにアスタリスクがそのまま表示されている](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1791785058/2026/10/12/rs2njhtzji9rg6gomvmr.png)
 
-![Slackでの返答。絵文字付きの見出し、コードブロックに入った表、UTCの時刻が並び、「*6 件*」のようにアスタリスクがそのまま表示されている](/images/devops-agent-slack-agents-md/01-before.png)
-
-実際には、AGENTS.mdに書いたことがほとんど守られていませんでした。
+しかし、実際には、AGENTS.mdに書いたことがほとんど守られていませんでした。
 
 | AGENTS.mdに書いたこと | 返答 |
 |---|---|
@@ -126,34 +127,30 @@ AGENTS.mdを読んでいれば、JSTの時刻で、見出しも表も絵文字�
 現時点で ALARM が継続しているものはありません。いずれも数分以内に自動回復した単発の事象です。詳細を調べたい場合はお知らせください。
 ```
 
-こちらはJSTの時刻で、見出しや表もありません。
-Web Appでは、AGENTS.mdが反映されていました。
+こちらはJSTの時刻で、見出しや表もなく、Web Appでは、AGENTS.mdが反映されていることが分かりました。
 
 ## なぜSlackでは反映されないのか
 
-まず、SlackのセッションでAGENTS.mdが読み込まれているのかが気になりました。
-同じスレッドで、読み込んでいるAGENTS.mdの内容を聞いてみました。
+まず、SlackのセッションでAGENTS.mdが読み込まれているのかが気になったため、同じスレッドで、読み込んでいるAGENTS.mdの内容を聞いてみました。
 
-![Slackでの返答。共通の方針とチャットでの答え方の2つのAGENTS.mdを読み込んでいるとして、それぞれの要点を挙げている](/images/devops-agent-slack-agents-md/02-loaded.png)
+![Slackでの返答。共通の方針とチャットでの答え方の2つのAGENTS.mdを読み込んでいるとして、それぞれの要点を挙げている](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1791785058/2026/10/12/qckhsa2ykfkyaipbwzur.png)
 
-共通とChatの2つを読み込んでいると答え、中身も書いたとおりでした。
+すると、共通とChatの2つを読み込んでいると答え、中身も書いたとおりでした。
 読み込まれていないわけではなさそうです。
 
 では、読み込んでいるのに、なぜ守らなかったのでしょうか。
 続けて、従わなかった理由と、Slackへの投稿で別に従っている書式があるかを聞いてみました。
 
-![Slackでの返答。従っていなかった点を挙げたうえで、AGENTS.md以外に自身の動作ルール（UXガイド）があり、見出しや表、絵文字を使うよう推奨されているため、そちらを優先したと答えている](/images/devops-agent-slack-agents-md/03-reason.png)
+![Slackでの返答。従っていなかった点を挙げたうえで、AGENTS.md以外に自身の動作ルール（UXガイド）があり、見出しや表、絵文字を使うよう推奨されているため、そちらを優先したと答えている](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1791785058/2026/10/12/ywzwsypyks6wbdmqrdle.png)
 
-DevOps Agentには、AGENTS.mdとは別に組み込みの動作ルール（UXガイド）があり、そこでは見出しや表、絵文字で整理することが推奨されている、という答えでした。
+すると、DevOps Agentには、AGENTS.mdとは別に組み込みの動作ルール（UXガイド）があり、そこでは見出しや表、絵文字で整理することが推奨されている、という答えでした。
 Slackへの返答では、そちらを優先していたようです。
 
-この答えはDevOps Agent自身の説明なので、正しいとは言い切れません。
-ただ、絵文字付きの見出しや、表をコードブロックで囲む形は、Slackに見やすく出すための書式に見えます。
-実際の返答の崩れ方とも合っているので、この説明を手がかりに対策を考えることにしました。
+この答えはDevOps Agent自身の説明なので、正しいとは言い切れませんが、実際の返答の崩れ方とも合っているため、この説明を手がかりに対策を考えることにしました。
 
 ## Slackでも反映させる方法
 
-組み込みの書式より、AGENTS.mdの書式を優先するように書き足しました。
+単純な方法ですが、組み込みの書式より、AGENTS.mdの書式を優先するように書き足しました。
 あわせて、記号がそのまま出てしまう太字も使わないようにしました。
 
 ```diff
@@ -175,7 +172,7 @@ Slackへの返答では、そちらを優先していたようです。
 
 前のスレッドのやり取りが影響しないように、新しいスレッドで同じ質問をしました。
 
-![Slackでの返答。JSTの時刻で、見出しや表、絵文字がなく、アラーム名はバッククォートで囲まれている](/images/devops-agent-slack-agents-md/04-after.png)
+![Slackでの返答。JSTの時刻で、見出しや表、絵文字がなく、アラーム名はバッククォートで囲まれている](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1791785066/2026/10/12/dzecszfjyevnkiya3s5w.png)
 
 今度は、時刻がJSTになり、絵文字付きの見出しや表もなくなりました。
 アラーム名もバッククォートで囲まれています。
@@ -203,16 +200,11 @@ Slackへの返答では、そちらを優先していたようです。
 
 返答の形式は大きく変わりましたが、細かいルールまですべて守らせるには、もう少し書き方の工夫が要りそうです。
 
-なお、Incident UI（調査結果の投稿）用のAGENTS.mdも同じように書き足しましたが、調査結果の投稿での反映のされ方は今回は試していません。
-
 ## まとめ
 
-AGENTS.mdは、Web Appでは書いたとおりに反映されましたが、Slackでは書式のルールが守られませんでした。
-DevOps Agent自身は、組み込みの書式のガイドを優先していたと説明しています。
-「この書式を組み込みの書式より優先する」と書き足すと、Slackでも時刻や見出し、表、絵文字のルールが守られるようになりました。
-書き足しただけで返答が変わったので、SlackのセッションでもAGENTS.mdは読み込まれていると考えられます。
+Slackでの返答形式を変えたい場合は、AGENTS.mdに指示を書くだけでなく、「この指示を優先する」という指示も必要なことが分かりました。
 
-Web Appでは反映されるのにSlackでは反映されない、と困っている方の参考になれば嬉しいです。
+Web Appでは反映されるのにSlackでは反映されない、と困っている方の参考になれば幸いです。
 
 ## 参考
 
