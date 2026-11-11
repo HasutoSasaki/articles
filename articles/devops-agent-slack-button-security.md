@@ -1,5 +1,5 @@
 ---
-title: "Slack通知のボタンからAWS DevOps Agentの調査を起動してみた。誰がどの権限で押せるのかも調べた"
+title: "Slack通知のボタンから、Lambda経由でAWS DevOps Agentの調査を起動してみた"
 emoji: "🔘"
 type: "tech"
 topics: ["aws", "devopsagent", "slack", "amazonq", "lambda"]
@@ -8,12 +8,15 @@ published: false
 
 こんにちは、製造ビジネステクノロジー部のはすとです。
 
-AWS DevOps Agentは、CloudWatchアラームをきっかけに調査を自動で始められます。
-便利なのですが、調査は実行時間に応じて課金されるので、アラームが鳴るたびに調査が始まると費用がかさみます。
-そこで「人がSlackの通知のボタンを押したときだけ調査する」形にできないかと考えました。
+前回は、CloudWatchアラームをきっかけにAWS DevOps Agentの調査を自動で始める構成を作りました。
 
-ただ、Slackにボタンを置くと、今度は「誰でも押せてしまうのでは」「ボタンはどんな権限で動くのか」が気になります。
-本記事では、Amazon Q Developer in chat applications（旧AWS Chatbot）のカスタムアクションでボタンを作り、押すとLambda経由でDevOps Agentの調査を作る仕組みと、押せる人や通る権限を確かめた結果をまとめます。
+https://dev.classmethod.jp/articles/devops-agent-cpu-alarm-webhook-no-lambda/
+
+動かしてみると便利なのですが、調査は実行時間に応じて課金されるため、アラームが鳴るたびに調査が始まると費用がかさみます。
+そこで今回は「人がSlackの通知のボタンを押したときだけ調査する」形にできないかと考えました。
+
+ただ、Slackにボタンを置くと、今度は「誰でも押せてしまうのでは」「ボタンはどんな権限で動くのか」というセキュリティ面が気になります。
+本記事では、Amazon Q Developer in chat applications（旧AWS Chatbot）のカスタムアクションでボタンを作り、押すとLambda経由でDevOps Agentの調査を発火させる仕組みと、セキュリティ面を確かめた結果をまとめます。
 
 ## 検証環境
 
@@ -23,20 +26,20 @@ AWS DevOps Agentは、CloudWatchアラームをきっかけに調査を自動で
 - Slack: プライベートチャンネル。Amazon Qのアプリを招待済み
 - AWS CDK: aws-cdk-lib 2.272.0
 - Lambda: Node.js 22、`@aws-sdk/client-devops-agent` 3.1152.0
-- 調査の対象: ECS FargateのCPU使用率のアラーム（DevOps AgentのAgent Spaceは作成済み）
+- 調査の対象: ECS FargateのCPU使用率のアラーム
 
 ## 仕組み
 
 ボタンを押してから調査が始まるまでの流れは、次のようになります。
 
-![構成図。Slackのプライベートチャンネルのアラーム通知にあるボタンをメンバーが押すと、Amazon Q Developer in chat applicationsがチャンネルロールでlambda invokeを実行し、Lambdaが許可リストの照合とアラームの状態の確認をしてからCreateBacklogTaskでDevOps Agentの調査を作る。通知自体はCloudWatchアラームからSNSトピックを経由してAmazon Qが投稿する](/images/devops-agent-slack-button/00-architecture.png)
+![構成図。Slackのプライベートチャンネルのアラーム通知にあるボタンをメンバーが押すと、Amazon Q Developer in chat applicationsがチャンネルロールでlambda invokeを実行し、Lambdaが許可リストの照合とアラームの状態の確認をしてからCreateBacklogTaskでDevOps Agentの調査を作る。通知自体はCloudWatchアラームからSNSトピックを経由してAmazon Qが投稿する](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1792203017/2026/10/17/gxck7ygpboyg06rciukz.png)
 
 ボタンの正体は、Amazon Qの**カスタムアクション**です。
 通知にボタンを付けておき、押されたらAWS CLIのコマンドを実行する仕組みで、コマンドには通知の値を変数として埋め込めます。
 ここでは、アラーム名を入れた`lambda invoke`を実行します。
 
 呼ばれたLambdaは、アラーム名が許可リストにあるか、そのアラームが今ALARMかを確かめてから、DevOps Agentの`CreateBacklogTask` APIで調査を作ります。
-Webhookは使わないので、トークンの保管もEventBridgeのルールも要りません。
+Webhookは使わないため、トークンの保管もEventBridgeのルールも要りません。
 
 公式ドキュメントには、カスタムアクションの権限について次のように書かれています。
 
@@ -65,7 +68,7 @@ CDKで作ったものは次の4つです。
 
 ### Lambda
 
-`clientToken`に「アラーム名と時刻（1時間単位）」を入れているので、同じアラームのボタンを同じ1時間の間に何度押しても、調査は1件になります。
+`clientToken`に「アラーム名と時刻（1時間単位）」を入れているため、同じアラームのボタンを同じ1時間の間に何度押しても、調査は1件になります。
 戻り値の文字列は、Amazon QがそのままSlackのスレッドに投稿します。
 
 ```javascript
@@ -156,7 +159,10 @@ const guardrail = new iam.ManagedPolicy(this, 'ChatbotGuardrail', { statements: 
 ### カスタムアクションとチャンネル設定
 
 カスタムアクションは`AWS::Chatbot::CustomAction`で作ります。
-Slackの画面から作るときはLambda専用の種類を選べますが、そちらで作ったものは`list-custom-actions`に出てこず、CloudFormationでも表せなかったので、CLIアクションとして`lambda invoke`を書いています。
+Slackの画面からも作れて、その場合は「Lambda action」という種類を選び、関数名とpayloadを入力するだけでボタンができます。
+ただ、Slackの画面から作ったアクションは`list-custom-actions`に出てこず、CloudFormationの`AWS::Chatbot::CustomAction`にも「Lambda action」という種類はありません。
+CloudFormationの定義にあるのはCLIのコマンド文字列（`CommandText`）だけです。
+CDKで管理したいため、CLIアクションとして`lambda invoke`のコマンドを書いています。
 
 `$AlarmName`は、通知の値に置き換わる変数です。
 `criteria`で、ALARMになったときの通知にだけボタンを出すようにしています。
@@ -165,7 +171,7 @@ Slackの画面から作るときはLambda専用の種類を選べますが、そ
 const investigateAction = new chatbot.CfnCustomAction(this, 'InvestigateLambdaCustomAction', {
   actionName: 'devops-agent-cpu-demo-request-investigation',
   definition: {
-    // 出力先のファイル名（位置引数）を付けると Amazon Q が解釈できないので付けない
+    // 出力先のファイル名（位置引数）を付けると Amazon Q が解釈できないため付けない
     commandText: `lambda invoke --function-name ${investigateFn.functionName} --payload '{"alarmName":"$AlarmName"}' --region ${this.region}`,
   },
   attachments: [
@@ -198,18 +204,18 @@ new chatbot.CfnSlackChannelConfiguration(this, 'SlackChannelConfiguration', {
 
 アラームをALARMにすると、Slackの通知に「DevOps Agent に調査依頼」のボタンが付きました。
 
-![SlackのCloudWatchアラームの通知。List dashboards、Query logsに並んで「DevOps Agent に調査依頼」のボタンがある](/images/devops-agent-slack-button/01-alarm-notification.png)
+![SlackのCloudWatchアラームの通知。List dashboards、Query logsに並んで「DevOps Agent に調査依頼」のボタンがある](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1792203016/2026/10/17/oljprmbgmygxshxytkfr.png)
 
 ボタンを押すと、すぐには実行されず、確認のダイアログが出ます。
 実行するコマンドの全文と、実行先のアカウントが表示されます。
 
-![Command Actionのダイアログ。AlarmNameの値、実行するlambda invokeのコマンド全文、Run in accountの選択、Change variablesのボタン、CloseとRunのボタンがある](/images/devops-agent-slack-button/02-command-action.png)
+![Command Actionのダイアログ。AlarmNameの値、実行するlambda invokeのコマンド全文、Run in accountの選択、Change variablesのボタン、CloseとRunのボタンがある](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1792203016/2026/10/17/af5hf5wrs1vc8gsltsns.png)
 
 Runを押すと、スレッドに実行結果が投稿されました。
 Lambdaの戻り値がそのまま`Payload`として表示され、DevOps Agentに調査が作られています。
 続けてもう一度押しても、同じタスクIDが返り、調査は増えませんでした。
 
-![通知のスレッド。Amazon Qが「I ran the command」としてlambda invokeのコマンドとチャンネルロールで実行したことを投稿し、Payloadに「調査を作りました: 256d07c5-…（状態 PENDING_START）」が表示されている。同じ内容がもう1件続き、同じタスクIDが返っている。その下に、アラームがOKに戻った通知が続き、こちらにはList dashboardsとQuery logsのボタンしかない](/images/devops-agent-slack-button/03-thread-result.png)
+![通知のスレッド。Amazon Qが「I ran the command」としてlambda invokeのコマンドとチャンネルロールで実行したことを投稿し、Payloadに「調査を作りました: 256d07c5-…（状態 PENDING_START）」が表示されている。同じ内容がもう1件続き、同じタスクIDが返っている。その下に、アラームがOKに戻った通知が続き、こちらにはList dashboardsとQuery logsのボタンしかない](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1792203023/2026/10/17/zpssui23ghc5mldpbjuh.png)
 
 アラームがOKに戻った通知にはボタンが出ていません。
 `criteria`で指定した表示の条件は、そのとおりに働いています。
@@ -225,33 +231,31 @@ Lambdaの戻り値がそのまま`Payload`として表示され、DevOps Agent�
 >
 > [Understanding Amazon Q Developer in chat applications permissions](https://docs.aws.amazon.com/chatbot/latest/adminguide/understanding-permissions.html)
 
-今回の構成はチャンネルロールなので、チャンネルにいる人なら誰でもボタンを押せます。
+今回の構成はチャンネルロールのため、チャンネルにいる人なら誰でもボタンを押せます。
 AWSのアカウントを持っているかどうかは関係ありません。
 「誰が押せるか」は、Slackのチャンネルに誰を入れるかで決まります。
 
-ゲストアカウントやSlack Connectの外部ユーザーが押せるかは、今回は試していません。
-プライベートチャンネルに招待した人だけで検証しています。
-
 ## 表示条件は、起動の制限にならない
 
-ここからが本記事で一番確かめたかったところです。
+ここからが、本記事で確かめたかったところです。
 
-ボタンに「ALARMの通知にだけ表示する」という条件を付けたので、対象外のアラームや、OKに戻った通知からは調査を起動できないはずだと考えると思います。
+ボタンに「ALARMの通知にだけ表示する」という条件を付けたため、対象外のアラームや、OKに戻った通知からは調査を起動できないはずだと考えると思います。
 私もそう思っていました。
 
 実際には、この条件は表示の条件にすぎません。
 確認のダイアログには「Change variables」のボタンがあり、押した人がその場でアラーム名を書き換えられます。
+書き換えると、実行するコマンドの中身もその名前に変わります。
 
-![Command Actionのダイアログ。AlarmNameがsome-other-alarmに書き換わっていて、コマンドのpayloadにもその名前が入っている](/images/devops-agent-slack-button/04-change-variables.png)
+![Command Actionのダイアログ。AlarmNameがsome-other-alarmに書き換わっていて、コマンドのpayloadにもその名前が入っている](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1792203023/2026/10/17/wxlzd8rwe0cdowyuqlpv.png)
 
 さらに、チャンネルのメンバーは`@Amazon Q lambda invoke ...`とコマンドを手で打つこともできます。
 どちらの場合も、Amazon Qはチャンネルロールの権限でLambdaを呼びます。
-IAMの権限は「この関数を呼べるか」しか見ていないので、ここでは止まりません。
+IAMの権限は「この関数を呼べるか」しか見ていないため、ここでは止まりません。
 
-止めたのはLambdaでした。
+止めてくれるのはLambdaです。
 許可リストにない名前で呼ぶと、調査を作らずに拒否の文を返します。
 
-![スレッド。alarmNameがsome-other-alarmのlambda invokeが実行され、Payloadに「some-other-alarm は調査の対象ではありません。対象: devops-agent-cpu-demo-worker-cpu-high」が表示されている](/images/devops-agent-slack-button/05-rejected.png)
+![スレッド。alarmNameがsome-other-alarmのlambda invokeが実行され、Payloadに「some-other-alarm は調査の対象ではありません。対象: devops-agent-cpu-demo-worker-cpu-high」が表示されている](https://devio2024-media.developers.io/image/upload/c_limit,w_1200/f_auto/q_auto/v1792203023/2026/10/17/mbmmuel4xm6qcsiwpz0p.png)
 
 同じように、アラームがOKに戻ったあとに押しても「今 OK なので調査を始めません」が返ります。
 ボタンの表示条件や変数の初期値は、起動を制限する仕組みではありません。
@@ -263,32 +267,36 @@ IAMの権限は「この関数を呼べるか」しか見ていないので、�
 
 **ガードレールを既定のままにしない**
 チャンネル設定のガードレールは、既定では`AdministratorAccess`です。
-ガードレールはチャンネルロールとユーザーロールの両方に優先する上限なので、ここが広いままだと、将来チャンネルロールに権限を足したときに、そのままチャンネルの全員が使えるようになります。
-今回はチャンネルロールと同じ最小のポリシーを指定しました。
+ガードレールはチャンネルロールとユーザーロールの両方に優先する上限であるため、ここが広いままだと、将来チャンネルロールに権限を足したときに、そのままチャンネルの全員が使えるようになります。
+チャンネルロールと同じ最小のポリシーを指定しましょう。
 
-**押した人の記録は、思ったより残らない**
+**押した人の記録は、監査ログに残らない**
 Amazon Qは、実行したコマンドの監査ログをCloudWatch Logs（バージニア北部の`/aws/chatbot/<設定名>`）に残します。
 手打ちしたコマンドは、`prepared`と`approved`の2行が、SlackのユーザーIDとコマンド全文付きで残っていました。
 一方、ボタンを押した時刻には、このログに`command`の行がありませんでした。
 カスタムアクションの実行は、この検証では監査ログに残りませんでした。
 
-`CreateBacklogTask`は管理イベントなのでCloudTrailに残りますが、主体はLambdaのロールです。
+`CreateBacklogTask`は管理イベントのためCloudTrailに残りますが、主体はLambdaのロールです。
 Amazon QがLambdaに渡す`event`は`{"alarmName": "..."}`だけで、押した人の情報は入っていませんでした。
 誰が押したかを残したい場合は、Amazon Qの監査ログの保持期間を確かめたうえで、Slackのスレッドの投稿（`I ran the command`の投稿者）を手がかりにすることになります。
 
-**連打と費用**
-`clientToken`を付けているので、同じアラームのボタンを同じ1時間の間に何度押しても、調査は1件です。
-時間を置いて押せば新しい調査が始まるので、1日の調査時間の合計に上限を付けたい場合は、その判定もLambdaに足すことになります。
+**1日の調査時間の上限は別に要る**
+`clientToken`でまとめられるのは、同じアラームを同じ1時間の間に押した分だけです。
+時間を置いて押せば新しい調査が始まり、調査は実行時間に応じて課金されるため、押した回数に応じて費用はかかります。
+1日の調査時間の合計に上限を付けたい場合は、その判定もLambdaに足す等の対応が必要です。
 
 ## まとめ
 
 Slackの通知のボタンから調査を起動する仕組みは、カスタムアクションと小さなLambdaで作れました。
-ボタンを押したときに使われるのはチャンネルロールの権限で、チャンネルにいる人なら誰でも押せます。
 
-意外だったのは、「ALARMの通知にだけ表示する」という条件が、起動の制限にはならないことです。
-確認のダイアログから変数を書き換えられますし、同じコマンドは手でも打てます。
-どのアラームなら調査を起動してよいかは、ボタンの外側で絞る必要がありました。
-Lambdaに許可リストと状態の確認を置いたので、書き換えても手で打っても、対象外なら調査は始まりません。
+一方で、ボタン自体には何かを制限する力がありません。
+ボタンを押したときに使われるのはチャンネルロールの権限で、チャンネルにいる人なら誰でも押せます。
+そのため、チャンネルロールに付ける権限は、ボタンに必要な最小限にとどめる必要があります。
+同じように、ボタンを「ALARMの通知にだけ表示する」ようにしても、調査を起動できる範囲は絞れません。
+表示条件が決めるのはボタンを出すかどうかだけで、確認のダイアログからアラーム名を書き換えることも、同じコマンドを手で打つこともできます。
+
+つまり各責任は、誰が押せるかはSlackのチャンネル側にあり、何の権限で動くかはチャンネルロールで、どのアラームを調査してよいかはLambdaで決まります。
+今回はLambdaに許可リストと状態の確認を置いたため、書き換えても手で打っても、対象外なら調査は始まりません。
 
 同じようにSlackからDevOps Agentを起動したい方の参考になれば幸いです。
 
