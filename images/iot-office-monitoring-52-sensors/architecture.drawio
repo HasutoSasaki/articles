@@ -1,0 +1,200 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="arch" name="構成図">
+    <mxGraphModel dx="1400" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="820" math="0" shadow="0">
+      <root>
+<mxCell id="0" />
+      <mxCell id="1" parent="0" />
+      <mxCell id="pc" value="手元の PC" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#777777;dashed=1;fontColor=#333333;fontStyle=1;fontSize=14;align=left;verticalAlign=top;spacingLeft=10;spacingTop=4;" vertex="1" parent="1">
+        <mxGeometry x="30" y="40" width="200" height="880" as="geometry" />
+      </mxCell>
+      <mxCell id="replay" value="再生スクリプト（Node.js）&lt;br&gt;52 台ぶんの MQTT 接続&lt;br&gt;証明書 1 枚を共有" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.client;fillColor=#232F3E;strokeColor=#ffffff;fontSize=12;fontColor=#232F3E;" vertex="1" parent="1">
+        <mxGeometry x="100" y="160" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="grafana" value="Grafana（Docker）&lt;br&gt;5 秒ごとに更新" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=data:image/svg+xml,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDIwLjEuMCwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IgoJIHdpZHRoPSIzNTFweCIgaGVpZ2h0PSIzNjVweCIgdmlld0JveD0iMCAwIDM1MSAzNjUiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDM1MSAzNjU7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbDp1cmwoI1NWR0lEXzFfKTt9Cjwvc3R5bGU+CjxnIGlkPSJMYXllcl8xXzFfIj4KPC9nPgo8bGluZWFyR3JhZGllbnQgaWQ9IlNWR0lEXzFfIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjE3NS41IiB5MT0iMzAlIiB4Mj0iMTc1LjUiIHkyPSI5OSUiPgoJPHN0b3AgIG9mZnNldD0iMCIgc3R5bGU9InN0b3AtY29sb3I6I0YwNUEyOCIvPgoJPHN0b3AgIG9mZnNldD0iMSIgc3R5bGU9InN0b3AtY29sb3I6I0ZCQ0EwQSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8cGF0aCBjbGFzcz0ic3QwIiBkPSJNMzQyLDE2MS4yYy0wLjYtNi4xLTEuNi0xMy4xLTMuNi0yMC45Yy0yLTcuNy01LTE2LjItOS40LTI1Yy00LjQtOC44LTEwLjEtMTcuOS0xNy41LTI2LjgKCWMtMi45LTMuNS02LjEtNi45LTkuNS0xMC4yYzUuMS0yMC4zLTYuMi0zNy45LTYuMi0zNy45Yy0xOS41LTEuMi0zMS45LDYuMS0zNi41LDkuNGMtMC44LTAuMy0xLjUtMC43LTIuMy0xCgljLTMuMy0xLjMtNi43LTIuNi0xMC4zLTMuN2MtMy41LTEuMS03LjEtMi4xLTEwLjgtM2MtMy43LTAuOS03LjQtMS42LTExLjItMi4yYy0wLjctMC4xLTEuMy0wLjItMi0wLjMKCWMtOC41LTI3LjItMzIuOS0zOC42LTMyLjktMzguNmMtMjcuMywxNy4zLTMyLjQsNDEuNS0zMi40LDQxLjVzLTAuMSwwLjUtMC4zLDEuNGMtMS41LDAuNC0zLDAuOS00LjUsMS4zYy0yLjEsMC42LTQuMiwxLjQtNi4yLDIuMgoJYy0yLjEsMC44LTQuMSwxLjYtNi4yLDIuNWMtNC4xLDEuOC04LjIsMy44LTEyLjIsNmMtMy45LDIuMi03LjcsNC42LTExLjQsNy4xYy0wLjUtMC4yLTEtMC40LTEtMC40Yy0zNy44LTE0LjQtNzEuMywyLjktNzEuMywyLjkKCWMtMy4xLDQwLjIsMTUuMSw2NS41LDE4LjcsNzAuMWMtMC45LDIuNS0xLjcsNS0yLjUsNy41Yy0yLjgsOS4xLTQuOSwxOC40LTYuMiwyOC4xYy0wLjIsMS40LTAuNCwyLjgtMC41LDQuMgoJQzE4LjgsMTkyLjcsOC41LDIyOCw4LjUsMjI4YzI5LjEsMzMuNSw2My4xLDM1LjYsNjMuMSwzNS42YzAsMCwwLjEtMC4xLDAuMS0wLjFjNC4zLDcuNyw5LjMsMTUsMTQuOSwyMS45YzIuNCwyLjksNC44LDUuNiw3LjQsOC4zCgljLTEwLjYsMzAuNCwxLjUsNTUuNiwxLjUsNTUuNmMzMi40LDEuMiw1My43LTE0LjIsNTguMi0xNy43YzMuMiwxLjEsNi41LDIuMSw5LjgsMi45YzEwLDIuNiwyMC4yLDQuMSwzMC40LDQuNQoJYzIuNSwwLjEsNS4xLDAuMiw3LjYsMC4xbDEuMiwwbDAuOCwwbDEuNiwwbDEuNi0wLjFsMCwwLjFjMTUuMywyMS44LDQyLjEsMjQuOSw0Mi4xLDI0LjljMTkuMS0yMC4xLDIwLjItNDAuMSwyMC4yLTQ0LjRsMCwwCgljMCwwLDAtMC4xLDAtMC4zYzAtMC40LDAtMC42LDAtMC42bDAsMGMwLTAuMywwLTAuNiwwLTAuOWM0LTIuOCw3LjgtNS44LDExLjQtOS4xYzcuNi02LjksMTQuMy0xNC44LDE5LjktMjMuMwoJYzAuNS0wLjgsMS0xLjYsMS41LTIuNGMyMS42LDEuMiwzNi45LTEzLjQsMzYuOS0xMy40Yy0zLjYtMjIuNS0xNi40LTMzLjUtMTkuMS0zNS42bDAsMGMwLDAtMC4xLTAuMS0wLjMtMC4yCgljLTAuMi0wLjEtMC4yLTAuMi0wLjItMC4yYzAsMCwwLDAsMCwwYy0wLjEtMC4xLTAuMy0wLjItMC41LTAuM2MwLjEtMS40LDAuMi0yLjcsMC4zLTQuMWMwLjItMi40LDAuMi00LjksMC4yLTcuM2wwLTEuOGwwLTAuOQoJbDAtMC41YzAtMC42LDAtMC40LDAtMC42bC0wLjEtMS41bC0wLjEtMmMwLTAuNy0wLjEtMS4zLTAuMi0xLjljLTAuMS0wLjYtMC4xLTEuMy0wLjItMS45bC0wLjItMS45bC0wLjMtMS45CgljLTAuNC0yLjUtMC44LTQuOS0xLjQtNy40Yy0yLjMtOS43LTYuMS0xOC45LTExLTI3LjJjLTUtOC4zLTExLjItMTUuNi0xOC4zLTIxLjhjLTctNi4yLTE0LjktMTEuMi0yMy4xLTE0LjkKCWMtOC4zLTMuNy0xNi45LTYuMS0yNS41LTcuMmMtNC4zLTAuNi04LjYtMC44LTEyLjktMC43bC0xLjYsMGwtMC40LDBjLTAuMSwwLTAuNiwwLTAuNSwwbC0wLjcsMGwtMS42LDAuMWMtMC42LDAtMS4yLDAuMS0xLjcsMC4xCgljLTIuMiwwLjItNC40LDAuNS02LjUsMC45Yy04LjYsMS42LTE2LjcsNC43LTIzLjgsOWMtNy4xLDQuMy0xMy4zLDkuNi0xOC4zLDE1LjZjLTUsNi04LjksMTIuNy0xMS42LDE5LjZjLTIuNyw2LjktNC4yLDE0LjEtNC42LDIxCgljLTAuMSwxLjctMC4xLDMuNS0wLjEsNS4yYzAsMC40LDAsMC45LDAsMS4zbDAuMSwxLjRjMC4xLDAuOCwwLjEsMS43LDAuMiwyLjVjMC4zLDMuNSwxLDYuOSwxLjksMTAuMWMxLjksNi41LDQuOSwxMi40LDguNiwxNy40CgljMy43LDUsOC4yLDkuMSwxMi45LDEyLjRjNC43LDMuMiw5LjgsNS41LDE0LjgsN2M1LDEuNSwxMCwyLjEsMTQuNywyLjFjMC42LDAsMS4yLDAsMS43LDBjMC4zLDAsMC42LDAsMC45LDBjMC4zLDAsMC42LDAsMC45LTAuMQoJYzAuNSwwLDEtMC4xLDEuNS0wLjFjMC4xLDAsMC4zLDAsMC40LTAuMWwwLjUtMC4xYzAuMywwLDAuNi0wLjEsMC45LTAuMWMwLjYtMC4xLDEuMS0wLjIsMS43LTAuM2MwLjYtMC4xLDEuMS0wLjIsMS42LTAuNAoJYzEuMS0wLjIsMi4xLTAuNiwzLjEtMC45YzItMC43LDQtMS41LDUuNy0yLjRjMS44LTAuOSwzLjQtMiw1LTNjMC40LTAuMywwLjktMC42LDEuMy0xYzEuNi0xLjMsMS45LTMuNywwLjYtNS4zCgljLTEuMS0xLjQtMy4xLTEuOC00LjctMC45Yy0wLjQsMC4yLTAuOCwwLjQtMS4yLDAuNmMtMS40LDAuNy0yLjgsMS4zLTQuMywxLjhjLTEuNSwwLjUtMy4xLDAuOS00LjcsMS4yYy0wLjgsMC4xLTEuNiwwLjItMi41LDAuMwoJYy0wLjQsMC0wLjgsMC4xLTEuMywwLjFjLTAuNCwwLTAuOSwwLTEuMiwwYy0wLjQsMC0wLjgsMC0xLjIsMGMtMC41LDAtMSwwLTEuNS0wLjFjMCwwLTAuMywwLTAuMSwwbC0wLjIsMGwtMC4zLDAKCWMtMC4yLDAtMC41LDAtMC43LTAuMWMtMC41LTAuMS0wLjktMC4xLTEuNC0wLjJjLTMuNy0wLjUtNy40LTEuNi0xMC45LTMuMmMtMy42LTEuNi03LTMuOC0xMC4xLTYuNmMtMy4xLTIuOC01LjgtNi4xLTcuOS05LjkKCWMtMi4xLTMuOC0zLjYtOC00LjMtMTIuNGMtMC4zLTIuMi0wLjUtNC41LTAuNC02LjdjMC0wLjYsMC4xLTEuMiwwLjEtMS44YzAsMC4yLDAtMC4xLDAtMC4xbDAtMC4ybDAtMC41YzAtMC4zLDAuMS0wLjYsMC4xLTAuOQoJYzAuMS0xLjIsMC4zLTIuNCwwLjUtMy42YzEuNy05LjYsNi41LTE5LDEzLjktMjYuMWMxLjktMS44LDMuOS0zLjQsNi00LjljMi4xLTEuNSw0LjQtMi44LDYuOC0zLjljMi40LTEuMSw0LjgtMiw3LjQtMi43CgljMi41LTAuNyw1LjEtMS4xLDcuOC0xLjRjMS4zLTAuMSwyLjYtMC4yLDQtMC4yYzAuNCwwLDAuNiwwLDAuOSwwbDEuMSwwbDAuNywwYzAuMywwLDAsMCwwLjEsMGwwLjMsMGwxLjEsMC4xCgljMi45LDAuMiw1LjcsMC42LDguNSwxLjNjNS42LDEuMiwxMS4xLDMuMywxNi4yLDYuMWMxMC4yLDUuNywxOC45LDE0LjUsMjQuMiwyNS4xYzIuNyw1LjMsNC42LDExLDUuNSwxNi45YzAuMiwxLjUsMC40LDMsMC41LDQuNQoJbDAuMSwxLjFsMC4xLDEuMWMwLDAuNCwwLDAuOCwwLDEuMWMwLDAuNCwwLDAuOCwwLDEuMWwwLDFsMCwxLjFjMCwwLjctMC4xLDEuOS0wLjEsMi42Yy0wLjEsMS42LTAuMywzLjMtMC41LDQuOQoJYy0wLjIsMS42LTAuNSwzLjItMC44LDQuOGMtMC4zLDEuNi0wLjcsMy4yLTEuMSw0LjdjLTAuOCwzLjEtMS44LDYuMi0zLDkuM2MtMi40LDYtNS42LDExLjgtOS40LDE3LjEKCWMtNy43LDEwLjYtMTguMiwxOS4yLTMwLjIsMjQuN2MtNiwyLjctMTIuMyw0LjctMTguOCw1LjdjLTMuMiwwLjYtNi41LDAuOS05LjgsMWwtMC42LDBsLTAuNSwwbC0xLjEsMGwtMS42LDBsLTAuOCwwCgljMC40LDAtMC4xLDAtMC4xLDBsLTAuMywwYy0xLjgsMC0zLjUtMC4xLTUuMy0wLjNjLTctMC41LTEzLjktMS44LTIwLjctMy43Yy02LjctMS45LTEzLjItNC42LTE5LjQtNy44CgljLTEyLjMtNi42LTIzLjQtMTUuNi0zMi0yNi41Yy00LjMtNS40LTguMS0xMS4zLTExLjItMTcuNGMtMy4xLTYuMS01LjYtMTIuNi03LjQtMTkuMWMtMS44LTYuNi0yLjktMTMuMy0zLjQtMjAuMWwtMC4xLTEuM2wwLTAuMwoJbDAtMC4zbDAtMC42bDAtMS4xbDAtMC4zbDAtMC40bDAtMC44bDAtMS42bDAtMC4zYzAsMCwwLDAuMSwwLTAuMWwwLTAuNmMwLTAuOCwwLTEuNywwLTIuNWMwLjEtMy4zLDAuNC02LjgsMC44LTEwLjIKCWMwLjQtMy40LDEtNi45LDEuNy0xMC4zYzAuNy0zLjQsMS41LTYuOCwyLjUtMTAuMmMxLjktNi43LDQuMy0xMy4yLDcuMS0xOS4zYzUuNy0xMi4yLDEzLjEtMjMuMSwyMi0zMS44YzIuMi0yLjIsNC41LTQuMiw2LjktNi4yCgljMi40LTEuOSw0LjktMy43LDcuNS01LjRjMi41LTEuNyw1LjItMy4yLDcuOS00LjZjMS4zLTAuNywyLjctMS40LDQuMS0yYzAuNy0wLjMsMS40LTAuNiwyLjEtMC45YzAuNy0wLjMsMS40LTAuNiwyLjEtMC45CgljMi44LTEuMiw1LjctMi4yLDguNy0zLjFjMC43LTAuMiwxLjUtMC40LDIuMi0wLjdjMC43LTAuMiwxLjUtMC40LDIuMi0wLjZjMS41LTAuNCwzLTAuOCw0LjUtMS4xYzAuNy0wLjIsMS41LTAuMywyLjMtMC41CgljMC44LTAuMiwxLjUtMC4zLDIuMy0wLjVjMC44LTAuMSwxLjUtMC4zLDIuMy0wLjRsMS4xLTAuMmwxLjItMC4yYzAuOC0wLjEsMS41LTAuMiwyLjMtMC4zYzAuOS0wLjEsMS43LTAuMiwyLjYtMC4zCgljMC43LTAuMSwxLjktMC4yLDIuNi0wLjNjMC41LTAuMSwxLjEtMC4xLDEuNi0wLjJsMS4xLTAuMWwwLjUtMC4xbDAuNiwwYzAuOS0wLjEsMS43LTAuMSwyLjYtMC4ybDEuMy0wLjFjMCwwLDAuNSwwLDAuMSwwbDAuMywwCglsMC42LDBjMC43LDAsMS41LTAuMSwyLjItMC4xYzIuOS0wLjEsNS45LTAuMSw4LjgsMGM1LjgsMC4yLDExLjUsMC45LDE3LDEuOWMxMS4xLDIuMSwyMS41LDUuNiwzMSwxMC4zCgljOS41LDQuNiwxNy45LDEwLjMsMjUuMywxNi41YzAuNSwwLjQsMC45LDAuOCwxLjQsMS4yYzAuNCwwLjQsMC45LDAuOCwxLjMsMS4yYzAuOSwwLjgsMS43LDEuNiwyLjYsMi40YzAuOSwwLjgsMS43LDEuNiwyLjUsMi40CgljMC44LDAuOCwxLjYsMS42LDIuNCwyLjVjMy4xLDMuMyw2LDYuNiw4LjYsMTBjNS4yLDYuNyw5LjQsMTMuNSwxMi43LDE5LjljMC4yLDAuNCwwLjQsMC44LDAuNiwxLjJjMC4yLDAuNCwwLjQsMC44LDAuNiwxLjIKCWMwLjQsMC44LDAuOCwxLjYsMS4xLDIuNGMwLjQsMC44LDAuNywxLjUsMS4xLDIuM2MwLjMsMC44LDAuNywxLjUsMSwyLjNjMS4yLDMsMi40LDUuOSwzLjMsOC42YzEuNSw0LjQsMi42LDguMywzLjUsMTEuNwoJYzAuMywxLjQsMS42LDIuMywzLDIuMWMxLjUtMC4xLDIuNi0xLjMsMi42LTIuOEMzNDIuNiwxNzAuNCwzNDIuNSwxNjYuMSwzNDIsMTYxLjJ6Ii8+Cjwvc3ZnPgo=;fontSize=12;fontColor=#232F3E;html=1;" vertex="1" parent="1">
+        <mxGeometry x="100" y="620" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="aws" value="AWS（東京リージョン）" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=14;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_aws_cloud_alt;strokeColor=#232F3E;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#232F3E;dashed=0;" vertex="1" parent="1">
+        <mxGeometry x="270" y="40" width="1100" height="880" as="geometry" />
+      </mxCell>
+      <mxCell id="iotcore" value="AWS IoT Core&lt;br&gt;トピック dt/office-a/+/telemetry" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#7AA116;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.iot_core;" vertex="1" parent="aws">
+        <mxGeometry x="60" y="115" width="70" height="70" as="geometry" />
+      </mxCell>
+      <mxCell id="rule1" value="ルール officeIngest&lt;br&gt;（ingest スタック）" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.rule;fillColor=#7AA116;strokeColor=none;pointerEvents=1;fontSize=11;fontColor=#232F3E;" vertex="1" parent="aws">
+        <mxGeometry x="200" y="126" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="rule2" value="ルール officeInflux&lt;br&gt;（influx スタック）" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.rule;fillColor=#7AA116;strokeColor=none;pointerEvents=1;fontSize=11;fontColor=#232F3E;" vertex="1" parent="aws">
+        <mxGeometry x="200" y="656" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="ingestbox" value="スタック ingest / storage / alerting / analytics（置いたまま）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;fontColor=#555555;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;" vertex="1" parent="aws">
+        <mxGeometry x="320" y="50" width="760" height="470" as="geometry" />
+      </mxCell>
+
+      <mxCell id="firehose" value="Data Firehose&lt;br&gt;60 秒 / 1MB で束ねる" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.kinesis_data_firehose;" vertex="1" parent="aws">
+        <mxGeometry x="370" y="120" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="s3" value="S3&lt;br&gt;生データ（GZIP JSON）&lt;br&gt;時間別フォルダ" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#7AA116;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.s3;" vertex="1" parent="aws">
+        <mxGeometry x="560" y="120" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="glue" value="Glue テーブル&lt;br&gt;パーティション射影" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.glue;" vertex="1" parent="aws">
+        <mxGeometry x="750" y="120" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="athena" value="Athena&lt;br&gt;月次レポート" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.athena;" vertex="1" parent="aws">
+        <mxGeometry x="940" y="120" width="60" height="60" as="geometry" />
+      </mxCell>
+
+      <mxCell id="processor" value="Lambda processor&lt;br&gt;電池電圧の判定&lt;br&gt;最終受信時刻の記録" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="aws">
+        <mxGeometry x="370" y="270" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="dynamo" value="DynamoDB&lt;br&gt;台ごとの状態" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#C925D1;strokeColor=#ffffff;dashed=0;labelPosition=right;verticalLabelPosition=middle;verticalAlign=middle;align=left;spacingLeft=4;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.dynamodb;" vertex="1" parent="aws">
+        <mxGeometry x="560" y="270" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="sns" value="SNS&lt;br&gt;切り替わった時だけ" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sns;" vertex="1" parent="aws">
+        <mxGeometry x="750" y="270" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="email" value="担当者にメール" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws4.email;fillColor=#232F3E;strokeColor=#ffffff;fontSize=12;fontColor=#232F3E;" vertex="1" parent="aws">
+        <mxGeometry x="950" y="276" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="cwlogs" value="CloudWatch Logs&lt;br&gt;ルールの失敗だけ" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.cloudwatch_2;" vertex="1" parent="aws">
+        <mxGeometry x="200" y="260" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="influxbox" value="スタック influx（検証のときだけ作成・削除）" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#999999;dashed=1;fontColor=#555555;fontSize=12;align=left;verticalAlign=top;spacingLeft=8;spacingTop=2;" vertex="1" parent="aws">
+        <mxGeometry x="320" y="540" width="760" height="320" as="geometry" />
+      </mxCell>
+      <mxCell id="vpc" value="専用 VPC（パブリックサブネットのみ、NAT なし）" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_vpc;strokeColor=#8C4FFF;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#8C4FFF;dashed=0;" vertex="1" parent="aws">
+        <mxGeometry x="440" y="570" width="520" height="280" as="geometry" />
+      </mxCell>
+      <mxCell id="writer" value="Lambda influx-writer&lt;br&gt;まとめて InfluxDB に書く&lt;br&gt;セキュリティグループ writer-sg" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="aws">
+        <mxGeometry x="500" y="650" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="sg" value="InfluxDB のセキュリティグループ&lt;br&gt;8086 の許可元: writer-sg と 手元の PC の IP /32" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=11;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;strokeColor=#DD3522;fillColor=none;verticalAlign=top;align=left;spacingLeft=30;fontColor=#DD3522;dashed=0;" vertex="1" parent="aws">
+        <mxGeometry x="660" y="600" width="280" height="150" as="geometry" />
+      </mxCell>
+      <mxCell id="influx" value="Timestream for InfluxDB&lt;br&gt;db.influx.medium・保持 7 日" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#C925D1;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.timestream;" vertex="1" parent="aws">
+        <mxGeometry x="790" y="650" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="r53" value="Route 53 プライベートホストゾーン&lt;br&gt;VPC 内だけプライベート IP に解決" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#8C4FFF;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.route_53;" vertex="1" parent="aws">
+        <mxGeometry x="506" y="770" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="ssm" value="SSM パラメータ&lt;br&gt;接続先（Grafana 用）" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.systems_manager;" vertex="1" parent="aws">
+        <mxGeometry x="1000" y="560" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="secrets" value="Secrets Manager&lt;br&gt;管理ユーザーのパスワード&lt;br&gt;（トークンの発行に使う）" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#DD344C;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=11;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.secrets_manager;" vertex="1" parent="aws">
+        <mxGeometry x="1000" y="700" width="48" height="48" as="geometry" />
+      </mxCell>
+      <mxCell id="e1" value="MQTT / TLS 8883" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=11;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="replay" target="iotcore">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;" edge="1" parent="aws" source="iotcore" target="rule1">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;" edge="1" parent="aws" source="iotcore" target="rule2">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="95" y="680" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+      <mxCell id="e4" value="全件" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=11;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="rule1" target="firehose">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e5" value="全件" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=11;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="rule1" target="processor">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="300" y="150" />
+            <mxPoint x="300" y="300" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+      <mxCell id="e6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;" edge="1" parent="aws" source="firehose" target="s3">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e7" value="定義" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;dashed=1;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="glue" target="s3">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e8" value="読む" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;dashed=1;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="athena" target="glue">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e9" value="状態" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;startArrow=block;strokeColor=#545B64;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="processor" target="dynamo">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e10" value="電池" style="exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="processor" target="sns">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="400" y="245" />
+            <mxPoint x="780" y="245" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+      <mxCell id="e11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;" edge="1" parent="aws" source="sns" target="email">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e12" value="失敗時" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;dashed=1;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="rule1" target="cwlogs">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="sqs" value="SQS&lt;br&gt;最大 1,000 件・5 秒で束ねる" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.sqs;" vertex="1" parent="aws">
+        <mxGeometry x="330" y="650" width="60" height="60" as="geometry" />
+      </mxCell>
+      <mxCell id="e23" value="1 回で複数点" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=11;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="sqs" target="writer">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e13" value="全件" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=11;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="rule2" target="sqs">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e14" value="8086" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#1565C0;strokeWidth=2;fontSize=11;fontColor=#1565C0;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="writer" target="influx">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e15" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;dashed=1;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="writer" target="r53">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+      <mxCell id="e16" value="接続先と SG の ID" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;dashed=1;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="influx" target="ssm">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="980" y="680" />
+            <mxPoint x="880" y="584" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+      <mxCell id="e18" value="8086（手元の PC の IP /32、パブリックエンドポイント経由）" style="exitX=1;exitY=0.7;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#DD3522;strokeWidth=2;fontSize=11;fontColor=#DD3522;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="grafana" target="influx">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="190" y="662" />
+            <mxPoint x="190" y="908" />
+            <mxPoint x="1170" y="908" />
+            <mxPoint x="1170" y="720" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+      <mxCell id="e19" value="接続先を読む" style="exitX=1;exitY=0.3;exitDx=0;exitDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;dashed=1;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="grafana" target="ssm">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="180" y="638" />
+            <mxPoint x="180" y="560" />
+            <mxPoint x="1294" y="560" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+
+        <mxCell id="eventbridge" value="EventBridge&lt;br&gt;1 分ごと" style="sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1,0],[0.5,1,0],[0.75,1,0],[1,1,0],[0,0.25,0],[0,0.5,0],[0,0.75,0],[1,0.25,0],[1,0.5,0],[1,0.75,0]];outlineConnect=0;fontColor=#232F3E;fillColor=#E7157B;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.eventbridge;" vertex="1" parent="aws">
+          <mxGeometry x="370" y="410" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="watchdog" value="Lambda watchdog&lt;br&gt;止まった台を探す" style="sketch=0;outlineConnect=0;fontColor=#232F3E;fillColor=#ED7100;strokeColor=#ffffff;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;fontSize=12;fontStyle=0;aspect=fixed;shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.lambda;" vertex="1" parent="aws">
+          <mxGeometry x="560" y="410" width="60" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" value="1 分ごとに起動" style="exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="eventbridge" target="watchdog">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+        <mxCell id="e21" value="最終受信時刻" style="exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;startArrow=block;strokeColor=#545B64;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="watchdog" target="dynamo">
+        <mxGeometry relative="1" as="geometry" />
+      </mxCell>
+        <mxCell id="e22" value="停止" style="exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.83;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;strokeColor=#545B64;fontSize=11;labelBackgroundColor=#FFFFFF;" edge="1" parent="aws" source="watchdog" target="sns">
+        <mxGeometry relative="1" as="geometry">
+          <Array as="points">
+            <mxPoint x="715" y="440" />
+            <mxPoint x="715" y="320" />
+          </Array>
+        </mxGeometry>
+      </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
